@@ -2,7 +2,7 @@ use core::{
     any::type_name,
     fmt::{Debug, Error, Formatter},
     marker::PhantomData,
-    ops::{Add, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 /// Trait implemented for [`Unit`].
@@ -112,7 +112,7 @@ impl<L, M, T, I, O, N, J> Copy for Unit<L, M, T, I, O, N, J> {}
 /// `Unit<1, 0, -1, ...> + Unit<0, 0, 1, ...> = Unit<1, 0, 0, ...>`
 ///
 /// It's used for multiplying quantities.
-impl<U, L, M, T, I, O, N, J> Add<U> for Unit<L, M, T, I, O, N, J>
+impl<U, L, M, T, I, O, N, J> Mul<U> for Unit<L, M, T, I, O, N, J>
 where
     U: UnitTrait,
     L: Add<U::Length>,
@@ -135,7 +135,7 @@ where
     >;
 
     #[inline]
-    fn add(self, _rhs: U) -> Self::Output {
+    fn mul(self, _rhs: U) -> Self::Output {
         Unit::new()
     }
 }
@@ -144,7 +144,7 @@ where
 /// `Unit<1, 0, -1, ...> - Unit<0, 0, 1, ...> = Unit<1, 0, -2, ...>`
 ///
 /// It's used for dividing quantities.
-impl<U, L, M, T, I, O, N, J> Sub<U> for Unit<L, M, T, I, O, N, J>
+impl<U, L, M, T, I, O, N, J> Div<U> for Unit<L, M, T, I, O, N, J>
 where
     U: UnitTrait,
     L: Sub<U::Length>,
@@ -168,7 +168,7 @@ where
     >;
 
     #[inline]
-    fn sub(self, _rhs: U) -> Self::Output {
+    fn div(self, _rhs: U) -> Self::Output {
         Unit::new()
     }
 }
@@ -195,20 +195,20 @@ mod tests {
     }
 
     #[test]
-    fn sub() {
+    fn div() {
         let _: Unit<Z0, Z0, Z0, Z0, Z0, Z0, Z0> =
-            Unit::<P1, P1, P1, P1, P1, P1, P1>::new() - Unit::<P1, P1, P1, P1, P1, P1, P1>::new();
+            Unit::<P1, P1, P1, P1, P1, P1, P1>::new() / Unit::<P1, P1, P1, P1, P1, P1, P1>::new();
 
         let _: Unit<N8, N7, N6, N5, N4, N3, N2> =
-            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() - Unit::<P8, P7, P6, P5, P4, P3, P2>::new();
+            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() / Unit::<P8, P7, P6, P5, P4, P3, P2>::new();
     }
 
     #[test]
-    fn add() {
+    fn mul() {
         let _: Unit<P1, P1, P1, P1, P1, P1, P1> =
-            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() + Unit::<P1, P1, P1, P1, P1, P1, P1>::new();
+            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() * Unit::<P1, P1, P1, P1, P1, P1, P1>::new();
 
         let _: Unit<P8, N7, P6, N5, P4, N3, P2> =
-            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() + Unit::<P8, N7, P6, N5, P4, N3, P2>::new();
+            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() * Unit::<P8, N7, P6, N5, P4, N3, P2>::new();
     }
 }

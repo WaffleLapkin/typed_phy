@@ -222,10 +222,10 @@ where
 impl<S, U0, U1> Mul<Quantity<S, U1>> for Quantity<S, U0>
 where
     S: Mul<Output = S>,
-    U0: UnitTrait + Add<U1>,
+    U0: UnitTrait + Mul<U1>,
     U1: UnitTrait,
 {
-    type Output = Quantity<S, <U0 as Add<U1>>::Output>;
+    type Output = Quantity<S, <U0 as Mul<U1>>::Output>;
 
     #[inline]
     fn mul(self, rhs: Quantity<S, U1>) -> Self::Output {
@@ -243,10 +243,10 @@ where
 impl<S, U0, U1> Div<Quantity<S, U1>> for Quantity<S, U0>
 where
     S: Div<Output = S>,
-    U0: UnitTrait + Sub<U1>,
+    U0: UnitTrait + Div<U1>,
     U1: UnitTrait,
 {
-    type Output = Quantity<S, <U0 as Sub<U1>>::Output>;
+    type Output = Quantity<S, <U0 as Div<U1>>::Output>;
 
     #[inline]
     fn div(self, rhs: Quantity<S, U1>) -> Self::Output {
@@ -351,7 +351,7 @@ where
 impl<S, U0, U1> CheckedMul<Quantity<S, U1>> for Quantity<S, U0>
 where
     S: CheckedMul<Output = S>,
-    U0: UnitTrait + Add<U1>,
+    U0: UnitTrait + Mul<U1>,
     U1: UnitTrait,
 {
     #[inline]
@@ -371,7 +371,7 @@ where
 impl<S, U0, U1> CheckedDiv<Quantity<S, U1>> for Quantity<S, U0>
 where
     S: CheckedDiv<Output = S>,
-    U0: UnitTrait + Sub<U1>,
+    U0: UnitTrait + Div<U1>,
     U1: UnitTrait,
 {
     #[inline]

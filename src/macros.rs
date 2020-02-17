@@ -44,10 +44,10 @@ macro_rules! Unit {
         Unit![@exp $t => $op; $a ^ $n; $( $tts )*]
     };
     ($t:ty => * $a:ident $( $tts:tt )*) => {
-        Unit![<$t as core::ops::Add<$a>>::Output => $( $tts )*]
+        Unit![<$t as core::ops::Mul<$a>>::Output => $( $tts )*]
     };
     ($t:ty => / $a:ident $( $tts:tt )*) => {
-        Unit![<$t as core::ops::Sub<$a>>::Output => $( $tts )*]
+        Unit![<$t as core::ops::Div<$a>>::Output => $( $tts )*]
     };
     ($t:ident $( $tts:tt )*) => {
         Unit![$crate::units::Dimensionless => * $t $( $tts )*]

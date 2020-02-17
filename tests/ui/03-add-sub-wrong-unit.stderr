@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+ --> $DIR/03-add-sub-wrong-unit.rs:4:22
+  |
+4 |     let _ = 5.kg() + 10.sqm();
+  |                      ^^^^^^^^ expected struct `typenum::int::Z0`, found struct `typenum::int::PInt`
+  |
+  = note: expected struct `typed_phy::quantity::Quantity<{integer}, typed_phy::unit::Unit<typenum::int::Z0, typenum::int::PInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>>, _, _, _, _, _>>`
+             found struct `typed_phy::quantity::Quantity<{integer}, typed_phy::unit::Unit<typenum::int::PInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>>, typenum::int::Z0, _, _, _, _, _>>`
+
+error[E0308]: mismatched types
+ --> $DIR/03-add-sub-wrong-unit.rs:5:22
+  |
+5 |     let _ = 10.m() - 5.mps();
+  |                      ^^^^^^^ expected struct `typenum::int::Z0`, found struct `typenum::int::NInt`
+  |
+  = note: expected struct `typed_phy::quantity::Quantity<{integer}, typed_phy::unit::Unit<_, _, typenum::int::Z0, _, _, _, _>>`
+             found struct `typed_phy::quantity::Quantity<{integer}, typed_phy::unit::Unit<_, _, typenum::int::NInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>>, _, _, _, _>>`

@@ -1,0 +1,10 @@
+error[E0308]: mismatched types
+ --> $DIR/02-quantity-wrong-storage.rs:4:31
+  |
+4 |     let _: Quantity<u32, _> = Quantity::<i32, MetrePerSecond>::new(0);
+  |            ----------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u32`, found `i32`
+  |            |
+  |            expected due to this
+  |
+  = note: expected struct `typed_phy::quantity::Quantity<u32, _>`
+             found struct `typed_phy::quantity::Quantity<i32, typed_phy::unit::Unit<typenum::int::PInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>>, typenum::int::Z0, typenum::int::NInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>>, typenum::int::Z0, typenum::int::Z0, typenum::int::Z0, typenum::int::Z0>>`

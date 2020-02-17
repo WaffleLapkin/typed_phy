@@ -1,0 +1,10 @@
+error[E0308]: mismatched types
+ --> $DIR/01-quantity-wrong-unit.rs:4:36
+  |
+4 |     let _: Quantity<i32, Newton> = Quantity::<i32, Watt>::new(0);
+  |            ---------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `typenum::uint::UTerm`, found struct `typenum::uint::UInt`
+  |            |
+  |            expected due to this
+  |
+  = note: expected struct `typed_phy::quantity::Quantity<_, typed_phy::unit::Unit<typenum::int::PInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>>, _, typenum::int::NInt<typenum::uint::UInt<_, typenum::bit::B0>>, _, _, _, _>>`
+             found struct `typed_phy::quantity::Quantity<_, typed_phy::unit::Unit<typenum::int::PInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>>, _, typenum::int::NInt<typenum::uint::UInt<_, typenum::bit::B1>>, _, _, _, _>>`

@@ -45,6 +45,7 @@ mod sealed {
 
     pub trait FractionEq<Rhs> {}
 
+    // `A / B = U / V <=> A*V = U*B`
     impl<A, B, U, V> FractionEq<Fraction<A, B>> for Fraction<U, V>
     where
         A: Mul<V>,

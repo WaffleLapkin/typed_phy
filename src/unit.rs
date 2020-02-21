@@ -112,8 +112,9 @@ impl<L, M, T, I, O, N, J, R> Clone for Unit<L, M, T, I, O, N, J, R> {
 
 impl<L, M, T, I, O, N, J, R> Copy for Unit<L, M, T, I, O, N, J, R> {}
 
-/// This adds exponents at type-level. E.g.
-/// `Unit<1, 0, -1, ...> + Unit<0, 0, 1, ...> = Unit<1, 0, 0, ...>`
+/// This adds exponents and multiplies ratios at type-level. E.g.
+/// `Unit<1, 0, -1, ..., 1/10> * Unit<0, 0, 1, ..., 10/1> =
+/// Unit<1, 0, 0, ..., 1/1>`
 ///
 /// It's used for multiplying quantities.
 impl<U, L, M, T, I, O, N, J, R> Mul<U> for Unit<L, M, T, I, O, N, J, R>
@@ -146,8 +147,9 @@ where
     }
 }
 
-/// This subs exponents at type-level. E.g.
-/// `Unit<1, 0, -1, ...> - Unit<0, 0, 1, ...> = Unit<1, 0, -2, ...>`
+/// This subs exponents and divides ratios at type-level. E.g.
+/// `Unit<1, 0, -1, ..., 1/10> / Unit<0, 0, 1, ..., 10/1> =
+/// Unit<1, 0, -2, ..., 1/100>`
 ///
 /// It's used for dividing quantities.
 impl<U, L, M, T, I, O, N, J, R> Div<U> for Unit<L, M, T, I, O, N, J, R>

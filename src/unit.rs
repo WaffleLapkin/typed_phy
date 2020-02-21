@@ -5,6 +5,8 @@ use core::{
     ops::{Add, Div, Mul, Sub},
 };
 
+use crate::TypeOnly;
+
 /// Trait implemented for [`Unit`].
 /// Mostly needed to simplify bound and write
 /// ```
@@ -59,9 +61,6 @@ impl<L, M, T, I, O, N, J> UnitTrait for Unit<L, M, T, I, O, N, J> {
     type AmountOfSubstance = N;
     type LuminousIntensity = J;
 }
-
-/// Invariant over `T` and doesn't own it.
-type TypeOnly<T> = PhantomData<fn(T) -> T>;
 
 /// Represent unit at type level by storing exponents of the [base units]:
 ///

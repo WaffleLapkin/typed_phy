@@ -64,6 +64,8 @@ mod macros;
 pub mod checked;
 /// Aliases to units
 pub mod units;
+/// Type-level gcd (greatest common divisor)
+pub mod gcd;
 
 /* private, but reexported */
 mod eq;
@@ -79,6 +81,9 @@ pub use self::{
     quantity::Quantity,
     unit::{Unit, UnitTrait},
 };
+
+/// Invariant over `T` and doesn't own it.
+pub(crate) type TypeOnly<T> = core::marker::PhantomData<fn(T) -> T>;
 
 /// UI tests to see weird type errors.
 ///

@@ -30,3 +30,23 @@ where
     >,
 {
 }
+
+pub trait FractionEq<Rhs>: sealed::FractionEq<Rhs> {}
+
+impl<T, Rhs> FractionEq<Rhs> for T
+where
+    T: sealed::FractionEq<Rhs>,
+{}
+
+mod sealed {
+    use crate::fraction::Fraction;
+    use core::ops::Mul;
+
+    pub trait FractionEq<Rhs> {}
+
+    impl<A, B, U, V> FractionEq<Fraction<A, B>> for Fraction<U, V>
+    where
+        A: Mul<V>,
+        U: Mul<B, Output = A::Output>,
+    {}
+}

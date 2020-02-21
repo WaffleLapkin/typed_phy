@@ -77,3 +77,18 @@ macro_rules! Unit {
         Unit![@exp $t => / ; $a ^ $lit; $( $tts )*]
     };
 }
+
+/// Shortcut for creating [`Fraction`], see it's doc for more.
+///
+/// [`Fraction`]: crate::fraction::Fraction
+#[macro_export]
+#[allow(non_snake_case)]
+macro_rules! Frac {
+    ($a:ident / $b:ty) => {
+        $crate::fraction::Fraction::<$a, $b>
+    };
+    ($a:ty) => {
+        $crate::fraction::Fraction::<$a, typenum::U1>
+        //                              ^^^^^^^^^^^ TODO: crate reexport
+    };
+}

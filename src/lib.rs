@@ -68,6 +68,8 @@ pub mod units;
 pub mod gcd;
 /// Trait for integers
 pub mod from_int;
+/// Type-level fraction (`A / B`)
+pub mod fraction;
 
 /* private, but reexported */
 mod eq;
@@ -77,7 +79,7 @@ mod quantity;
 mod unit;
 
 pub use self::{
-    eq::UnitEq,
+    eq::{UnitEq, FractionEq},
     ext::IntExt,
     id::Id,
     quantity::Quantity,

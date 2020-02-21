@@ -70,6 +70,8 @@ pub mod gcd;
 pub mod from_int;
 /// Type-level fraction (`A / B`)
 pub mod fraction;
+/// Simplify fractions
+pub mod simplify;
 
 /* private, but reexported */
 mod eq;

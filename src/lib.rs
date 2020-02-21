@@ -66,6 +66,8 @@ pub mod checked;
 pub mod units;
 /// Type-level gcd (greatest common divisor)
 pub mod gcd;
+/// Trait for integers
+pub mod from_int;
 
 /* private, but reexported */
 mod eq;

@@ -60,3 +60,31 @@ impls_uint! {
     u32 => U32,
     u64 => U64,
 }
+
+impl FromInteger for f32 {
+    #[inline]
+    fn from_integer<I: Integer>() -> Self {
+        I::I64 as f32
+    }
+}
+
+impl FromUnsigned for f32 {
+    #[inline]
+    fn from_unsigned<I: Unsigned>() -> Self {
+        I::U64 as f32
+    }
+}
+
+impl FromInteger for f64 {
+    #[inline]
+    fn from_integer<I: Integer>() -> Self {
+        I::I64 as f64
+    }
+}
+
+impl FromUnsigned for f64 {
+    #[inline]
+    fn from_unsigned<I: Unsigned>() -> Self {
+        I::U64 as f64
+    }
+}

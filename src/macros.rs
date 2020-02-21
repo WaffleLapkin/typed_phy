@@ -37,45 +37,103 @@
 #[macro_export]
 #[allow(non_snake_case)]
 macro_rules! Unit {
-    ($t:ty => $op:tt $a:ident ^ -$n:tt $( $tts:tt )*) => {
-        Unit![@exp $t => $op; $a ^ -$n; $( $tts )*]
+    // TODO: audit&document this macro
+
+    // Start of @replace sub-macro.
+    // It replaces *, / and ^ with {*}, {/} and {^}
+    // and calls @prepare
+    (@replace $( $t:tt )+) => {
+        Unit![@replace_inner [] [ $( $t )+ ]]
     };
-    ($t:ty => $op:tt $a:ident ^ $n:tt $( $tts:tt )*) => {
-        Unit![@exp $t => $op; $a ^ $n; $( $tts )*]
+    (@replace_inner [ $( $head:tt )* ] [ * $( $tail:tt )* ]) => {
+        Unit!(@replace_inner [ $( $head )* {*} ] [ $( $tail )* ])
     };
-    ($t:ty => * $a:ident $( $tts:tt )*) => {
-        Unit![<$t as core::ops::Mul<$a>>::Output => $( $tts )*]
+    (@replace_inner [ $( $head:tt )* ] [ / $( $tail:tt )* ]) => {
+        Unit!(@replace_inner [ $( $head )* {/} ] [ $( $tail )* ])
     };
-    ($t:ty => / $a:ident $( $tts:tt )*) => {
-        Unit![<$t as core::ops::Div<$a>>::Output => $( $tts )*]
+    (@replace_inner [ $( $head:tt )* ] [ ^ $( $tail:tt )* ]) => {
+        Unit!(@replace_inner [ $( $head )* {^} ] [ $( $tail )* ])
     };
-    ($t:ident $( $tts:tt )*) => {
-        Unit![$crate::units::Dimensionless => * $t $( $tts )*]
+    (@replace_inner [ $( $head:tt )* ] [ $it:tt $( $tail:tt )* ]) => {
+        Unit!(@replace_inner [ $( $head )* $it ] [ $( $tail )* ])
     };
+    (@replace_inner [ $( $head:tt )+ ] [] ) => {
+        Unit![@prepare $( $head )+ ]
+    };
+
+    // @prepare sub-macro
+    (@prepare $( $tail:tt )+) => {
+        Unit![$crate::units::Dimensionless => {*} $( $tail )+]
+    };
+
+
+    ($t:ty => {$op:tt} $a:ty {^} -$n:tt $( $tts:tt )*) => {
+        Unit![@exp $t => {$op}; $a {^} -$n; $( $tts )*]
+    };
+    ($t:ty => {$op:tt} $a:ty {^} $n:tt $( $tts:tt )*) => {
+        Unit![@exp $t => {$op}; $a {^} $n; $( $tts )*]
+    };
+    ($t:ty => {*} $a:ty $( {$next:tt} $( $tts:tt )+ )?) => {
+        Unit![<$t as core::ops::Mul<$a>>::Output => $( {$next} $( $tts )+ )?]
+    };
+    ($t:ty => {/} $a:ty $( {$next:tt} $( $tts:tt )+ )?) => {
+        Unit![<$t as core::ops::Div<$a>>::Output => $( {$next} $( $tts )+ )?]
+    };
+
+    // Start of @exp sub-macro
+    (@exp $t:ty => {$op:tt}; $a:ty {^} 4; $( $tts:tt )*) => {
+        Unit![$t => {$op} $a {$op} $a {$op} $a {$op} $a $( $tts )*]
+    };
+    (@exp $t:ty => {$op:tt}; $a:ty {^} 3; $( $tts:tt )*) => {
+        Unit![$t => {$op} $a {$op} $a {$op} $a $( $tts )*]
+    };
+    (@exp $t:ty => {$op:tt}; $a:ty {^} 2; $( $tts:tt )*) => {
+        Unit![$t => {$op} $a {$op} $a $( $tts )*]
+    };
+    (@exp $t:ty => {$op:tt}; $a:ty {^} 1; $( $tts:tt )*) => {
+        Unit![$t => {$op} $a $( $tts )*]
+    };
+    (@exp $t:ty => {$op:tt}; $a:ty {^} 0; $( $tts:tt )*) => {
+        Unit![$t => $( $tts )*]
+    };
+    (@exp $t:ty => {/} ; $a:ty {^} -$lit:tt; $( $tts:tt )*) => {
+        Unit![@exp $t => {*} ; $a {^} $lit; $( $tts )*]
+    };
+    (@exp $t:ty => {*} ; $a:ty {^} -$lit:tt; $( $tts:tt )*) => {
+        Unit![@exp $t => {/} ; $a {^} $lit; $( $tts )*]
+    };
+    (@exp $t:ty => {$op:tt} ; $a:ty {^} $lit:tt; $( $tts:tt )*) => {
+        compiler_error!("Only exponents from -4 to 4 are supported")
+    };
+
+    // End
     ($t:ty =>) => {
         $t
     };
-    (@exp $t:ty => $op:tt; $a:ident ^ 4; $( $tts:tt )*) => {
-        Unit![$t => $op $a $op $a $op $a $op $a $( $tts )*]
-    };
-    (@exp $t:ty => $op:tt; $a:ident ^ 3; $( $tts:tt )*) => {
-        Unit![$t => $op $a $op $a $op $a $( $tts )*]
-    };
-    (@exp $t:ty => $op:tt; $a:ident ^ 2; $( $tts:tt )*) => {
-        Unit![$t => $op $a $op $a $( $tts )*]
-    };
-    (@exp $t:ty => $op:tt; $a:ident ^ 1; $( $tts:tt )*) => {
-        Unit![$t => $op $a $( $tts )*]
-    };
-    (@exp $t:ty => $op:tt; $a:ident ^ 0; $( $tts:tt )*) => {
-        Unit![$t => $( $tts )*]
-    };
-    (@exp $t:ty => / ; $a:ident ^ -$lit:tt; $( $tts:tt )*) => {
-        Unit![@exp $t => * ; $a ^ $lit; $( $tts )*]
-    };
-    (@exp $t:ty => * ; $a:ident ^ -$lit:tt; $( $tts:tt )*) => {
-        Unit![@exp $t => / ; $a ^ $lit; $( $tts )*]
-    };
+
+    // Early start (user of the method should call this branch)
+    // Calls @replace sub-macro
+    ($( $anything:tt )+) => {
+        Unit![@replace $($anything)+]
+    }
+}
+
+#[test]
+fn unit() {
+    use core::ops::Mul;
+
+    use typenum::{P1, Z0, N1, U1000, U36, U100};
+
+    use crate::{fraction::Fraction, units::{Metre, Hour, Watt, KiloGram, Second}, prefixes::Kilo, Unit, IntExt, Quantity};
+
+    type U3600 = <U36 as Mul<U100>>::Output;
+
+    typenum::assert_type_eq!(Unit![Kilo<Metre> / Hour], Unit<P1, Z0, N1, Z0, Z0, Z0, Z0, Fraction<U1000, U3600>>);
+
+    // was broken in first version of the Unit! macro with types support
+    #[allow(clippy::type_complexity)]
+    let _: Quantity<_, Unit![KiloGram * Metre ^ 2 * Second ^ -3]> = 1.quantity::<Watt>();
+    // TODO: more tests
 }
 
 /// Shortcut for creating [`Fraction`], see it's doc for more.

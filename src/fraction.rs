@@ -5,14 +5,18 @@ use core::{
     any::type_name
 };
 
-use typenum::{UInt, Unsigned, U0};
+use typenum::{UInt, Unsigned, U0, U1};
 
-use crate::gcd::Gcd;
-use crate::from_int::FromUnsigned;
-use crate::eq::FractionEq;
+use crate::{
+    from_int::FromUnsigned,
+    eq::FractionEq
+};
 
 /// Fraction `Numerator / Denominator`
-pub struct Fraction<Numerator, Denominator>(PhantomData<(Numerator, Denominator)>);
+pub struct  Fraction<Numerator, Denominator>(PhantomData<(Numerator, Denominator)>);
+
+/// Default fraction. `1/1`
+pub type One = Fraction<U1, U1>;
 
 impl<N, D> Fraction<N, D> {
     /// Create new fraction
@@ -29,26 +33,30 @@ impl<N, D> Default for Fraction<N, D> {
     }
 }
 
-impl<N, D> Fraction<N, D>
-where
-    N: Unsigned,
-    D: Unsigned,
-{
+///
+pub trait FractionTrait {
+    ///
+    type Numerator: Unsigned;
+
+    ///
+    type Divisor: Unsigned;
+
     /// Multiply integer by this fraction
     ///
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::Frac;
+    /// use typed_phy::{Frac, fraction::FractionTrait};
     /// use typenum::{U5, U7};
     ///
     /// assert_eq!(<Frac![U5 / U7]>::mul(14), 10)
     /// ```
-    pub fn mul<I>(int: I) -> I
+    #[inline]
+    fn mul<I>(int: I) -> I
     where
         I: FromUnsigned + Mul<Output=I> + Div<Output=I>
     {
-        int * I::from_unsigned::<N>() / I::from_unsigned::<D>()
+        int * I::from_unsigned::<Self::Numerator>() / I::from_unsigned::<Self::Divisor>()
     }
 
     /// Divide integer by this fraction
@@ -56,17 +64,28 @@ where
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::Frac;
+    /// use typed_phy::{Frac, fraction::FractionTrait};
     /// use typenum::{U5, U7};
     ///
     /// assert_eq!(<Frac![U5 / U7]>::div(10), 14)
     /// ```
-    pub fn div<I>(int: I) -> I
+    #[inline]
+    fn div<I>(int: I) -> I
     where
         I: FromUnsigned + Mul<Output=I> + Div<Output=I>
     {
-        int * I::from_unsigned::<D>() / I::from_unsigned::<N>()
+        int * I::from_unsigned::<Self::Divisor>() / I::from_unsigned::<Self::Numerator>()
     }
+}
+
+
+impl<N, D> FractionTrait for Fraction<N, D>
+where
+    N: Unsigned,
+    D: Unsigned,
+{
+    type Numerator = N;
+    type Divisor = D;
 }
 
 /// `(n/d) / x = n/(d * x)`
@@ -159,6 +178,7 @@ impl<N, D, A, B> PartialEq<Fraction<A, B>> for Fraction<N, D>
 where
     Self: FractionEq<Fraction<A, B>>,
 {
+    #[inline]
     fn eq(&self, _other: &Fraction<A, B>) -> bool {
         true
     }
@@ -170,6 +190,7 @@ where
 {}
 
 impl<N, D> fmt::Debug for Fraction<N, D> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad(type_name::<Self>())
     }

@@ -1,10 +1,6 @@
 use core::ops::Div;
 
-use crate::{
-    gcd::Gcd,
-    fraction::Fraction,
-    Unit
-};
+use crate::{gcd::Gcd, fraction::Fraction, Unit, Quantity};
 
 /// Simplify fraction.
 ///
@@ -34,6 +30,7 @@ where
     N: Div<<N as Gcd<D>>::Output>,
     D: Div<<N as Gcd<D>>::Output>,
 {
+    #[allow(clippy::type_complexity)]
     type Output = Fraction<
         <N as Div<<N as Gcd<D>>::Output>>::Output,
         <D as Div<<N as Gcd<D>>::Output>>::Output,
@@ -42,5 +39,29 @@ where
     #[inline]
     fn simplify(self) -> Self::Output {
         Self::Output::new()
+    }
+}
+
+impl<L, M, T, I, O, N, J, R> Simplify for Unit<L, M, T, I, O, N, J, R>
+where
+    R: Simplify
+{
+    type Output = Unit<L, M, T, I, O, N, J, R::Output>;
+
+    #[inline]
+    fn simplify(self) -> Self::Output {
+        Self::Output::new()
+    }
+}
+
+impl<S, U> Simplify for Quantity<S, U>
+where
+    U: Simplify,
+{
+    type Output = Quantity<S, U::Output>;
+
+    #[inline]
+    fn simplify(self) -> Self::Output {
+        self.set_unit_unchecked()
     }
 }

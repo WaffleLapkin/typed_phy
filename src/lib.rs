@@ -72,6 +72,8 @@ pub mod from_int;
 pub mod fraction;
 /// Simplify fractions
 pub mod simplify;
+/// Unit prefixes
+pub mod prefixes;
 
 /* private, but reexported */
 mod eq;

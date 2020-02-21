@@ -1,7 +1,10 @@
 use crate::{
     units::{Dimensionless, KiloGram, Metre, MetrePerSecond, Second, SquareMetre},
     Quantity,
+    prefixes::{Kilo, Deci},
+    units::{Hour, KiloMetrePerHour}
 };
+use crate::units::Minute;
 
 /// Extension for integers for creating quantities of common units.
 ///
@@ -52,6 +55,31 @@ pub trait IntExt: Sized {
 
     #[inline]
     fn sqm(self) -> Quantity<Self, SquareMetre> {
+        self.quantity()
+    }
+
+    #[inline]
+    fn km(self) -> Quantity<Self, Kilo<Metre>> {
+        self.quantity()
+    }
+
+    #[inline]
+    fn h(self) -> Quantity<Self, Hour> {
+        self.quantity()
+    }
+
+    #[inline]
+    fn min_(self) -> Quantity<Self, Minute> {
+        self.quantity()
+    }
+
+    #[inline]
+    fn kmph(self) -> Quantity<Self, KiloMetrePerHour> {
+        self.quantity()
+    }
+
+    #[inline]
+    fn dm(self) -> Quantity<Self, Deci<Metre>> {
         self.quantity()
     }
 

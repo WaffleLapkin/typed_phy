@@ -5,7 +5,7 @@ use core::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use crate::TypeOnly;
+use crate::{TypeOnly, fraction::One};
 
 /// Trait implemented for [`Unit`].
 /// Mostly needed to simplify bound and write
@@ -20,7 +20,7 @@ use crate::TypeOnly;
 /// ```
 /// # use typed_phy::Unit;
 /// # trait Trait {}
-/// impl<L, M, T, I, O, N, J> Trait for Unit<L, M, T, I, O, N, J> {
+/// impl<L, M, T, I, O, N, J, R> Trait for Unit<L, M, T, I, O, N, J, R> {
 ///     /* ... */
 /// }
 /// ```
@@ -49,10 +49,13 @@ pub trait UnitTrait {
 
     /// Luminous intensity, base unit: candela
     type LuminousIntensity;
+
+    /// Ratio
+    type Ratio;
 }
 
 #[rustfmt::skip] // I don't want assoc types to be reordered
-impl<L, M, T, I, O, N, J> UnitTrait for Unit<L, M, T, I, O, N, J> {
+impl<L, M, T, I, O, N, J, R> UnitTrait for Unit<L, M, T, I, O, N, J, R> {
     type Length = L;
     type Mass = M;
     type Time = T;
@@ -60,6 +63,7 @@ impl<L, M, T, I, O, N, J> UnitTrait for Unit<L, M, T, I, O, N, J> {
     type ThermodynamicTemperature = O;
     type AmountOfSubstance = N;
     type LuminousIntensity = J;
+    type Ratio = R;
 }
 
 /// Represent unit at type level by storing exponents of the [base units]:
@@ -81,16 +85,17 @@ impl<L, M, T, I, O, N, J> UnitTrait for Unit<L, M, T, I, O, N, J> {
 ///   is `m / s` metre per second (speed)
 ///
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
-pub struct Unit<L, M, T, I, O, N, J>(TypeOnly<(L, M, T, I, O, N, J)>);
+#[allow(clippy::type_complexity)]
+pub struct Unit<L, M, T, I, O, N, J, R = One>(TypeOnly<(L, M, T, I, O, N, J, R)>);
 
-impl<L, M, T, I, O, N, J> Unit<L, M, T, I, O, N, J> {
+impl<L, M, T, I, O, N, J, R> Unit<L, M, T, I, O, N, J, R> {
     pub(crate) fn new() -> Self {
         Self(PhantomData::default())
     }
 }
 
 // We need to use handwritten impls to prevent unnecessary bounds on generics
-impl<L, M, T, I, O, N, J> Debug for Unit<L, M, T, I, O, N, J> {
+impl<L, M, T, I, O, N, J, R> Debug for Unit<L, M, T, I, O, N, J, R> {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         // TODO: add options to human-readable format
@@ -98,20 +103,20 @@ impl<L, M, T, I, O, N, J> Debug for Unit<L, M, T, I, O, N, J> {
     }
 }
 
-impl<L, M, T, I, O, N, J> Clone for Unit<L, M, T, I, O, N, J> {
+impl<L, M, T, I, O, N, J, R> Clone for Unit<L, M, T, I, O, N, J, R> {
     #[inline]
     fn clone(&self) -> Self {
         Self::new()
     }
 }
 
-impl<L, M, T, I, O, N, J> Copy for Unit<L, M, T, I, O, N, J> {}
+impl<L, M, T, I, O, N, J, R> Copy for Unit<L, M, T, I, O, N, J, R> {}
 
 /// This adds exponents at type-level. E.g.
 /// `Unit<1, 0, -1, ...> + Unit<0, 0, 1, ...> = Unit<1, 0, 0, ...>`
 ///
 /// It's used for multiplying quantities.
-impl<U, L, M, T, I, O, N, J> Mul<U> for Unit<L, M, T, I, O, N, J>
+impl<U, L, M, T, I, O, N, J, R> Mul<U> for Unit<L, M, T, I, O, N, J, R>
 where
     U: UnitTrait,
     L: Add<U::Length>,
@@ -121,6 +126,7 @@ where
     O: Add<U::ThermodynamicTemperature>,
     N: Add<U::AmountOfSubstance>,
     J: Add<U::LuminousIntensity>,
+    R: Mul<U::Ratio>,
 {
     #[allow(clippy::type_complexity)]
     type Output = Unit<
@@ -131,6 +137,7 @@ where
         <O as Add<U::ThermodynamicTemperature>>::Output,
         <N as Add<U::AmountOfSubstance>>::Output,
         <J as Add<U::LuminousIntensity>>::Output,
+        <R as Mul<U::Ratio>>::Output,
     >;
 
     #[inline]
@@ -143,7 +150,7 @@ where
 /// `Unit<1, 0, -1, ...> - Unit<0, 0, 1, ...> = Unit<1, 0, -2, ...>`
 ///
 /// It's used for dividing quantities.
-impl<U, L, M, T, I, O, N, J> Div<U> for Unit<L, M, T, I, O, N, J>
+impl<U, L, M, T, I, O, N, J, R> Div<U> for Unit<L, M, T, I, O, N, J, R>
 where
     U: UnitTrait,
     L: Sub<U::Length>,
@@ -153,6 +160,7 @@ where
     O: Sub<U::ThermodynamicTemperature>,
     N: Sub<U::AmountOfSubstance>,
     J: Sub<U::LuminousIntensity>,
+    R: Div<U::Ratio>,
 {
     // Yeah, it's very complex, but I can't do anything with it :(
     #[allow(clippy::type_complexity)]
@@ -164,6 +172,7 @@ where
         <O as Sub<U::ThermodynamicTemperature>>::Output,
         <N as Sub<U::AmountOfSubstance>>::Output,
         <J as Sub<U::LuminousIntensity>>::Output,
+        <R as Div<U::Ratio>>::Output,
     >;
 
     #[inline]

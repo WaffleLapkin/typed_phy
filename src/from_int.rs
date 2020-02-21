@@ -18,6 +18,7 @@ macro_rules! impls_int {
     ) => {
         $(
             impl FromInteger for $Int {
+                #[inline]
                 fn from_integer<I: Integer>() -> Self {
                     I::$Const
                 }
@@ -32,6 +33,7 @@ macro_rules! impls_uint {
     ) => {
         $(
             impl FromUnsigned for $Int {
+                #[inline]
                 fn from_unsigned<I: Unsigned>() -> Self {
                     I::$Const
                 }

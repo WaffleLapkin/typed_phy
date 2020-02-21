@@ -1,6 +1,7 @@
 use crate::unit::UnitTrait;
 
-/// Represent equality of 2 units by equality of their exponents (dimensions) and equality of their ratios
+/// Represent equality of 2 units by equality of their exponents (dimensions)
+/// and equality of their ratios
 pub trait UnitEq<Rhs>
 where
     Self: UnitTrait,
@@ -36,10 +37,7 @@ where
 /// Represent equality of 2 fractions
 pub trait FractionEq<Rhs>: sealed::FractionEq<Rhs> {}
 
-impl<T, Rhs> FractionEq<Rhs> for T
-where
-    T: sealed::FractionEq<Rhs>,
-{}
+impl<T, Rhs> FractionEq<Rhs> for T where T: sealed::FractionEq<Rhs> {}
 
 mod sealed {
     use crate::fraction::Fraction;
@@ -51,5 +49,6 @@ mod sealed {
     where
         A: Mul<V>,
         U: Mul<B, Output = A::Output>,
-    {}
+    {
+    }
 }

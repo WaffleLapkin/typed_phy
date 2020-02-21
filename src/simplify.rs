@@ -1,19 +1,16 @@
 use core::ops::Div;
 
-use crate::{gcd::Gcd, fraction::Fraction, Unit, Quantity};
+use crate::{fraction::Fraction, gcd::Gcd, Quantity, Unit};
 
 /// Simplify fraction.
 ///
 /// ## Examples
 /// ```
-/// use typed_phy::{
-///     fraction::Fraction,
-///     simplify::Simplify,
-/// };
+/// use typed_phy::{fraction::Fraction, simplify::Simplify};
 ///
-/// use typenum::{U3, U8, U12, U32, assert_type_eq};
+/// use typenum::{assert_type_eq, U12, U3, U32, U8};
 ///
-/// type Simplified = <Fraction::<U32, U12> as Simplify>::Output;
+/// type Simplified = <Fraction<U32, U12> as Simplify>::Output;
 /// assert_type_eq!(Simplified, Fraction::<U8, U3>);
 /// ```
 pub trait Simplify {
@@ -44,7 +41,7 @@ where
 
 impl<L, M, T, I, O, N, J, R> Simplify for Unit<L, M, T, I, O, N, J, R>
 where
-    R: Simplify
+    R: Simplify,
 {
     type Output = Unit<L, M, T, I, O, N, J, R::Output>;
 

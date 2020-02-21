@@ -62,18 +62,18 @@
 mod macros;
 
 pub mod checked;
-/// Aliases to units
-pub mod units;
-/// Type-level gcd (greatest common divisor)
-pub mod gcd;
-/// Trait for integers
-pub mod from_int;
 /// Type-level fraction (`A / B`)
 pub mod fraction;
-/// Simplify fractions
-pub mod simplify;
+/// Trait for integers
+pub mod from_int;
+/// Type-level gcd (greatest common divisor)
+pub mod gcd;
 /// Unit prefixes
 pub mod prefixes;
+/// Simplify fractions
+pub mod simplify;
+/// Aliases to units
+pub mod units;
 
 /* private, but reexported */
 mod eq;
@@ -83,7 +83,7 @@ mod quantity;
 mod unit;
 
 pub use self::{
-    eq::{UnitEq, FractionEq},
+    eq::{FractionEq, UnitEq},
     ext::IntExt,
     id::Id,
     quantity::Quantity,

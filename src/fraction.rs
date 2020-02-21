@@ -1,19 +1,16 @@
 use core::{
+    any::type_name,
+    fmt,
     marker::PhantomData,
     ops::{Div, Mul},
-    fmt,
-    any::type_name
 };
 
 use typenum::{UInt, Unsigned, U0, U1};
 
-use crate::{
-    from_int::FromUnsigned,
-    eq::FractionEq
-};
+use crate::{eq::FractionEq, from_int::FromUnsigned};
 
 /// Fraction `Numerator / Denominator`
-pub struct  Fraction<Numerator, Denominator>(PhantomData<(Numerator, Denominator)>);
+pub struct Fraction<Numerator, Denominator>(PhantomData<(Numerator, Denominator)>);
 
 /// Default fraction. `1/1`
 pub type One = Fraction<U1, U1>;
@@ -46,7 +43,7 @@ pub trait FractionTrait {
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::{Frac, fraction::FractionTrait};
+    /// use typed_phy::{fraction::FractionTrait, Frac};
     /// use typenum::{U5, U7};
     ///
     /// assert_eq!(<Frac![U5 / U7]>::mul(14), 10)
@@ -54,7 +51,7 @@ pub trait FractionTrait {
     #[inline]
     fn mul<I>(int: I) -> I
     where
-        I: FromUnsigned + Mul<Output=I> + Div<Output=I>
+        I: FromUnsigned + Mul<Output = I> + Div<Output = I>,
     {
         int * I::from_unsigned::<Self::Numerator>() / I::from_unsigned::<Self::Divisor>()
     }
@@ -64,7 +61,7 @@ pub trait FractionTrait {
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::{Frac, fraction::FractionTrait};
+    /// use typed_phy::{fraction::FractionTrait, Frac};
     /// use typenum::{U5, U7};
     ///
     /// assert_eq!(<Frac![U5 / U7]>::div(10), 14)
@@ -72,20 +69,19 @@ pub trait FractionTrait {
     #[inline]
     fn div<I>(int: I) -> I
     where
-        I: FromUnsigned + Mul<Output=I> + Div<Output=I>
+        I: FromUnsigned + Mul<Output = I> + Div<Output = I>,
     {
         int * I::from_unsigned::<Self::Divisor>() / I::from_unsigned::<Self::Numerator>()
     }
 }
-
 
 impl<N, D> FractionTrait for Fraction<N, D>
 where
     N: Unsigned,
     D: Unsigned,
 {
-    type Numerator = N;
     type Divisor = D;
+    type Numerator = N;
 }
 
 /// `(n/d) / x = n/(d * x)`
@@ -146,10 +142,7 @@ where
     N: Mul<B>,
     D: Mul<A>,
 {
-    type Output = Fraction<
-        <N as Mul<B>>::Output,
-        <D as Mul<A>>::Output
-    >;
+    type Output = Fraction<<N as Mul<B>>::Output, <D as Mul<A>>::Output>;
 
     #[inline]
     fn div(self, _rhs: Fraction<A, B>) -> Self::Output {
@@ -163,10 +156,7 @@ where
     N: Mul<A>,
     D: Mul<B>,
 {
-    type Output = Fraction<
-        <N as Mul<A>>::Output,
-        <D as Mul<B>>::Output,
-    >;
+    type Output = Fraction<<N as Mul<A>>::Output, <D as Mul<B>>::Output>;
 
     #[inline]
     fn mul(self, _rhs: Fraction<A, B>) -> Self::Output {
@@ -184,10 +174,7 @@ where
     }
 }
 
-impl<N, D> Eq for Fraction<N, D>
-where
-    Self: FractionEq<Self>,
-{}
+impl<N, D> Eq for Fraction<N, D> where Self: FractionEq<Self> {}
 
 impl<N, D> fmt::Debug for Fraction<N, D> {
     #[inline]

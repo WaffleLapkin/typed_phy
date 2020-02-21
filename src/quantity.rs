@@ -8,13 +8,12 @@ use core::{
 
 use crate::{
     checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
+    fraction::{FractionTrait, One},
+    from_int::FromUnsigned,
     id::Id,
     unit::UnitTrait,
     units::Dimensionless,
-    fraction::FractionTrait,
-    from_int::FromUnsigned,
     Unit,
-    fraction::One
 };
 
 /// Base type of the whole lib
@@ -188,9 +187,11 @@ where
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::{IntExt, units::Metre, prefixes::Kilo};
-    /// use typed_phy::units::{Hour, Minute};
-    /// use typed_phy::prefixes::Deci;
+    /// use typed_phy::{
+    ///     prefixes::{Deci, Kilo},
+    ///     units::{Hour, Metre, Minute},
+    ///     IntExt,
+    /// };
     ///
     /// assert_eq!(10.km().to::<Deci<Metre>>(), 100_000.dm());
     /// assert_eq!(100_000.dm().to::<Kilo<Metre>>(), 10.km());
@@ -214,7 +215,7 @@ where
             LuminousIntensity = T::LuminousIntensity,
         >,
     {
-        Quantity::new(dbg!(T::Ratio::div(dbg!(U::Ratio::mul(self.storage)))))
+        Quantity::new(T::Ratio::div(U::Ratio::mul(self.storage)))
     }
 
     /// ## Examples
@@ -230,7 +231,21 @@ where
     #[inline]
     #[allow(clippy::wrong_self_convention)] // TODO: better name
     #[allow(clippy::type_complexity)]
-    pub fn to_base(self) -> Quantity<S, Unit<U::Length, U::Mass, U::Time, U::ElectricCurrent, U::ThermodynamicTemperature, U::AmountOfSubstance, U::LuminousIntensity, One>> {
+    pub fn to_base(
+        self,
+    ) -> Quantity<
+        S,
+        Unit<
+            U::Length,
+            U::Mass,
+            U::Time,
+            U::ElectricCurrent,
+            U::ThermodynamicTemperature,
+            U::AmountOfSubstance,
+            U::LuminousIntensity,
+            One,
+        >,
+    > {
         self.to()
     }
 }

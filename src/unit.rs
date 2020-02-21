@@ -5,7 +5,7 @@ use core::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use crate::{TypeOnly, fraction::One};
+use crate::{fraction::One, TypeOnly};
 
 /// Trait implemented for [`Unit`].
 /// Mostly needed to simplify bound and write

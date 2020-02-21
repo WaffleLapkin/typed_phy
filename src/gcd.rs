@@ -1,22 +1,23 @@
 #![allow(clippy::type_complexity)]
 
-use typenum::{Unsigned, Z0, UInt, B0, U2, B1, Max, Min, U0};
 use core::ops::{Div, Mul, Sub};
+use typenum::{Max, Min, UInt, Unsigned, B0, B1, U0, U2, Z0};
 
-/// Type-level operator that counts `gcd` (Greatest Common Divisor) for to typenum's integers using
-/// [Binary GCD algorithm]\:
+/// Type-level operator that counts `gcd` (Greatest Common Divisor) for to
+/// typenum's integers using [Binary GCD algorithm]\:
 ///
-///  1. `gcd(0, v) = v`, `gcd(u, 0) = u`
-///  2. If `u` and `v` are both even, then `gcd(u, v) = 2·gcd(u/2, v/2)`
-///  3. If `u` is even and `v` is odd, `then gcd(u, v) = gcd(u/2, v)`. Similarly, if `u` is odd and `v` is even, then `gcd(u, v) = gcd(u, v/2)`
-///  4. If `u` and `v` are both odd, `gcd(u, v) = gcd((max − min)/2, min)` where `min = min(u, v)`, `max = max(u, v)`
+/// 1. `gcd(0, v) = v`, `gcd(u, 0) = u`
+/// 2. If `u` and `v` are both even, then `gcd(u, v) = 2·gcd(u/2, v/2)`
+/// 3. If `u` is even and `v` is odd, `then gcd(u, v) = gcd(u/2, v)`.
+///    Similarly, if `u` is odd and `v` is even, then `gcd(u, v) = gcd(u, v/2)`
+/// 4. If `u` and `v` are both odd, `gcd(u, v) = gcd((max − min)/2, min)` where
+///    `min = min(u, v)`, `max = max(u, v)`
 ///
 /// ## Examples
 ///
 /// ```
-/// use typenum::{U5, U10, U17, U0};
 /// use typed_phy::gcd::Gcd;
-/// use typenum::marker_traits::Unsigned;
+/// use typenum::{marker_traits::Unsigned, U0, U10, U17, U5};
 ///
 /// assert_eq!(<U10 as Gcd<U5>>::Output::I32, 5);
 /// assert_eq!(<U10 as Gcd<U10>>::Output::I32, 10);
@@ -84,13 +85,16 @@ where
     type Output = <Odd<U> as Gcd<<Even<V> as Div<U2>>::Output>>::Output;
 }
 
-/// `u` and `v` are both odd, `gcd(u, v) = gcd((max − min)/2, min)` where `min = min(u, v)`, `max = max(u, v)`
+/// `u` and `v` are both odd, `gcd(u, v) = gcd((max − min)/2, min)` where `min =
+/// min(u, v)`, `max = max(u, v)`
 impl<U: Unsigned, V: Unsigned> Gcd<Odd<V>> for Odd<U>
 where
-    Odd<U>: Max<Odd<V>> + Min<Odd<V>> ,
+    Odd<U>: Max<Odd<V>> + Min<Odd<V>>,
     <Odd<U> as Max<Odd<V>>>::Output: Sub<<Odd<U> as Min<Odd<V>>>::Output>,
     <<Odd<U> as Max<Odd<V>>>::Output as Sub<<Odd<U> as Min<Odd<V>>>::Output>>::Output: Div<U2>,
-    <<<Odd<U> as Max<Odd<V>>>::Output as Sub<<Odd<U> as Min<Odd<V>>>::Output>>::Output as Div<U2>>::Output: Gcd<<Odd<U> as Min<Odd<V>>>::Output>,
+    <<<Odd<U> as Max<Odd<V>>>::Output as Sub<<Odd<U> as Min<Odd<V>>>::Output>>::Output as Div<
+        U2,
+    >>::Output: Gcd<<Odd<U> as Min<Odd<V>>>::Output>,
 {
     type Output = <<<<Odd<U> as Max<Odd<V>>>::Output as Sub<<Odd<U> as Min<Odd<V>>>::Output>>::Output as Div<U2>>::Output as Gcd<<Odd<U> as Min<Odd<V>>>::Output>>::Output;
 }

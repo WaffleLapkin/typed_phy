@@ -122,9 +122,14 @@ macro_rules! Unit {
 fn unit() {
     use core::ops::Mul;
 
-    use typenum::{P1, Z0, N1, U1000, U36, U100};
+    use typenum::{N1, P1, U100, U1000, U36, Z0};
 
-    use crate::{fraction::Fraction, units::{Metre, Hour, Watt, KiloGram, Second}, prefixes::Kilo, Unit, IntExt, Quantity};
+    use crate::{
+        fraction::Fraction,
+        prefixes::Kilo,
+        units::{Hour, KiloGram, Metre, Second, Watt},
+        IntExt, Quantity, Unit,
+    };
 
     type U3600 = <U36 as Mul<U100>>::Output;
 

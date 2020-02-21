@@ -1,10 +1,11 @@
 use crate::{
-    units::{Dimensionless, KiloGram, Metre, MetrePerSecond, Second, SquareMetre},
+    prefixes::{Deci, Kilo},
+    units::{
+        Dimensionless, Hour, KiloGram, KiloMetrePerHour, Metre, MetrePerSecond, Minute, Second,
+        SquareMetre,
+    },
     Quantity,
-    prefixes::{Kilo, Deci},
-    units::{Hour, KiloMetrePerHour}
 };
-use crate::units::Minute;
 
 /// Extension for integers for creating quantities of common units.
 ///

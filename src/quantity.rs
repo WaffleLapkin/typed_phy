@@ -8,9 +8,12 @@ use core::{
 
 use crate::{
     checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
+    fraction::{FractionTrait, One},
+    from_int::FromUnsigned,
     id::Id,
     unit::UnitTrait,
     units::Dimensionless,
+    Unit,
 };
 
 /// Base type of the whole lib
@@ -133,7 +136,7 @@ impl<S, U> Quantity<S, U> {
         self.id_cast()
     }
 
-    fn set_unit_unchecked<U0>(self) -> Quantity<S, U0> {
+    pub(crate) fn set_unit_unchecked<U0>(self) -> Quantity<S, U0> {
         Quantity {
             storage: self.storage,
             _unit: PhantomData,
@@ -171,6 +174,79 @@ impl<S> Quantity<S, Dimensionless> {
     #[inline]
     pub fn value(self) -> S {
         self.storage
+    }
+}
+
+impl<S, U> Quantity<S, U>
+where
+    U: UnitTrait,
+    U::Ratio: FractionTrait,
+    S: FromUnsigned + Mul<Output = S> + Div<Output = S>,
+    S: Debug,
+{
+    /// ## Examples
+    ///
+    /// ```
+    /// use typed_phy::{
+    ///     prefixes::{Deci, Kilo},
+    ///     units::{Hour, Metre, Minute},
+    ///     IntExt,
+    /// };
+    ///
+    /// assert_eq!(10.km().to::<Deci<Metre>>(), 100_000.dm());
+    /// assert_eq!(100_000.dm().to::<Kilo<Metre>>(), 10.km());
+    ///
+    /// assert_eq!(3600.s().to::<Hour>(), 1.h());
+    /// assert_eq!(5.h().to::<Minute>(), 300.min_());
+    /// ```
+    #[inline]
+    pub fn to<T>(self) -> Quantity<S, T>
+    where
+        T: UnitTrait,
+        T::Ratio: FractionTrait,
+        // Can't use `UnitEq` because we don't need ratio to be equal
+        U: UnitTrait<
+            Length = T::Length,
+            Mass = T::Mass,
+            Time = T::Time,
+            ElectricCurrent = T::ElectricCurrent,
+            ThermodynamicTemperature = T::ThermodynamicTemperature,
+            AmountOfSubstance = T::AmountOfSubstance,
+            LuminousIntensity = T::LuminousIntensity,
+        >,
+    {
+        Quantity::new(T::Ratio::div(U::Ratio::mul(self.storage)))
+    }
+
+    /// ## Examples
+    ///
+    /// ```
+    /// use typed_phy::IntExt;
+    ///
+    /// assert_eq!(10.km().to_base(), 10_000.m());
+    /// assert_eq!(10.dm().to_base(), 1.m());
+    ///
+    /// assert_eq!(10.min_().to_base(), 600.s());
+    /// ```
+    #[inline]
+    #[allow(clippy::wrong_self_convention)] // TODO: better name
+    #[allow(clippy::type_complexity)]
+    pub fn to_base(
+        self,
+    ) -> Quantity<
+        S,
+        Unit<
+            U::Length,
+            U::Mass,
+            U::Time,
+            U::ElectricCurrent,
+            U::ThermodynamicTemperature,
+            U::AmountOfSubstance,
+            U::LuminousIntensity,
+            One,
+        >,
+    > {
+        self.to()
     }
 }
 

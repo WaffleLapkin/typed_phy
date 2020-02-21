@@ -1,0 +1,64 @@
+use core::ops::Div;
+
+use crate::{fraction::Fraction, gcd::Gcd, Quantity, Unit};
+
+/// Simplify fraction.
+///
+/// ## Examples
+/// ```
+/// use typed_phy::{fraction::Fraction, simplify::Simplify};
+///
+/// use typenum::{assert_type_eq, U12, U3, U32, U8};
+///
+/// type Simplified = <Fraction<U32, U12> as Simplify>::Output;
+/// assert_type_eq!(Simplified, Fraction::<U8, U3>);
+/// ```
+pub trait Simplify {
+    /// Result of the simplification
+    type Output;
+
+    /// Simplify fraction
+    fn simplify(self) -> Self::Output;
+}
+
+impl<N, D> Simplify for Fraction<N, D>
+where
+    N: Gcd<D>,
+    N: Div<<N as Gcd<D>>::Output>,
+    D: Div<<N as Gcd<D>>::Output>,
+{
+    #[allow(clippy::type_complexity)]
+    type Output = Fraction<
+        <N as Div<<N as Gcd<D>>::Output>>::Output,
+        <D as Div<<N as Gcd<D>>::Output>>::Output,
+    >;
+
+    #[inline]
+    fn simplify(self) -> Self::Output {
+        Self::Output::new()
+    }
+}
+
+impl<L, M, T, I, O, N, J, R> Simplify for Unit<L, M, T, I, O, N, J, R>
+where
+    R: Simplify,
+{
+    type Output = Unit<L, M, T, I, O, N, J, R::Output>;
+
+    #[inline]
+    fn simplify(self) -> Self::Output {
+        Self::Output::new()
+    }
+}
+
+impl<S, U> Simplify for Quantity<S, U>
+where
+    U: Simplify,
+{
+    type Output = Quantity<S, U::Output>;
+
+    #[inline]
+    fn simplify(self) -> Self::Output {
+        self.set_unit_unchecked()
+    }
+}

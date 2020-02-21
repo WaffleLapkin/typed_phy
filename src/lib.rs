@@ -62,6 +62,16 @@
 mod macros;
 
 pub mod checked;
+/// Type-level fraction (`A / B`)
+pub mod fraction;
+/// Trait for integers
+pub mod from_int;
+/// Type-level gcd (greatest common divisor)
+pub mod gcd;
+/// Unit prefixes
+pub mod prefixes;
+/// Simplify fractions
+pub mod simplify;
 /// Aliases to units
 pub mod units;
 
@@ -73,12 +83,15 @@ mod quantity;
 mod unit;
 
 pub use self::{
-    eq::UnitEq,
+    eq::{FractionEq, UnitEq},
     ext::IntExt,
     id::Id,
     quantity::Quantity,
     unit::{Unit, UnitTrait},
 };
+
+/// Invariant over `T` and doesn't own it.
+pub(crate) type TypeOnly<T> = core::marker::PhantomData<fn(T) -> T>;
 
 /// UI tests to see weird type errors.
 ///

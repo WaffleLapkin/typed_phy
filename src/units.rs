@@ -1,12 +1,9 @@
 use typenum::{P1, U24, U60, Z0};
 
-use crate::{
-    prefixes::{Kilo, Milli, MulBy},
-    unit::Unit,
-};
+use crate::{prefixes::{Kilo, Milli, MulBy}, unit::Unit, Dimensions};
 
 /// Just integer.
-pub type Dimensionless = Unit<Z0, Z0, Z0, Z0, Z0, Z0, Z0>;
+pub type Dimensionless = Unit<Dimensions<Z0, Z0, Z0, Z0, Z0, Z0, Z0>>;
 
 // Base units
 
@@ -15,19 +12,19 @@ pub type Dimensionless = Unit<Z0, Z0, Z0, Z0, Z0, Z0, Z0>;
 //                 Mass ----*.  \    |    /   .*---- Amount of substance
 //           Length ---- L,  M,  T,  I,  O,  N,  J ---- Luminous intensity
 /// Metre. `m`
-pub type Metre = Unit<P1, Z0, Z0, Z0, Z0, Z0, Z0>;
+pub type Metre = Unit<Dimensions<P1, Z0, Z0, Z0, Z0, Z0, Z0>>;
 /// Kilogram. `kg`
-pub type KiloGram = Unit<Z0, P1, Z0, Z0, Z0, Z0, Z0>;
+pub type KiloGram = Unit<Dimensions<Z0, P1, Z0, Z0, Z0, Z0, Z0>>;
 /// Second. `s`
-pub type Second = Unit<Z0, Z0, P1, Z0, Z0, Z0, Z0>;
+pub type Second = Unit<Dimensions<Z0, Z0, P1, Z0, Z0, Z0, Z0>>;
 /// Ampere. `A`
-pub type Ampere = Unit<Z0, Z0, Z0, P1, Z0, Z0, Z0>;
+pub type Ampere = Unit<Dimensions<Z0, Z0, Z0, P1, Z0, Z0, Z0>>;
 /// Kelvin. `K`
-pub type Kelvin = Unit<Z0, Z0, Z0, Z0, P1, Z0, Z0>;
+pub type Kelvin = Unit<Dimensions<Z0, Z0, Z0, Z0, P1, Z0, Z0>>;
 /// Mole. `mol`
-pub type Mole = Unit<Z0, Z0, Z0, Z0, Z0, P1, Z0>;
+pub type Mole = Unit<Dimensions<Z0, Z0, Z0, Z0, Z0, P1, Z0>>;
 /// Candela. `cd`
-pub type Candela = Unit<Z0, Z0, Z0, Z0, Z0, Z0, P1>;
+pub type Candela = Unit<Dimensions<Z0, Z0, Z0, Z0, Z0, Z0, P1>>;
 
 // Derived units
 /// Radian. `rad`

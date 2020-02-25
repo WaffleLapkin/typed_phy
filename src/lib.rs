@@ -81,6 +81,7 @@ mod ext;
 mod id;
 mod quantity;
 mod unit;
+mod dimensions;
 
 pub use self::{
     eq::{FractionEq, UnitEq},
@@ -88,6 +89,7 @@ pub use self::{
     id::Id,
     quantity::Quantity,
     unit::{Unit, UnitTrait},
+    dimensions::{Dimensions, DimensionsTrait},
 };
 
 /// Invariant over `T` and doesn't own it.

@@ -1,47 +1,52 @@
-use crate::unit::UnitTrait;
+/// Represent equality of 2 units by equality of their exponents (dimensions)
+/// and equality of their ratios
+pub trait UnitEq<Rhs>: sealed::UnitEq<Rhs> {}
+
+impl<U: sealed::UnitEq<Rhs>, Rhs> UnitEq<Rhs> for U {}
 
 /// Represent equality of 2 units by equality of their exponents (dimensions)
 /// and equality of their ratios
-pub trait UnitEq<Rhs>
-where
-    Self: UnitTrait,
-    Rhs: UnitTrait<
-        Length = Self::Length,
-        Mass = Self::Mass,
-        Time = Self::Time,
-        ElectricCurrent = Self::ElectricCurrent,
-        ThermodynamicTemperature = Self::ThermodynamicTemperature,
-        AmountOfSubstance = Self::AmountOfSubstance,
-        LuminousIntensity = Self::LuminousIntensity,
-    >,
-    Self::Ratio: FractionEq<Rhs::Ratio>,
-{
-}
+pub trait DimensionsEq<Rhs>: sealed::DimensionsEq<Rhs> {}
 
-impl<U, Rhs> UnitEq<Rhs> for U
-where
-    U: UnitTrait,
-    Rhs: UnitTrait<
-        Length = U::Length,
-        Mass = U::Mass,
-        Time = U::Time,
-        ElectricCurrent = U::ElectricCurrent,
-        ThermodynamicTemperature = U::ThermodynamicTemperature,
-        AmountOfSubstance = U::AmountOfSubstance,
-        LuminousIntensity = U::LuminousIntensity,
-    >,
-    U::Ratio: FractionEq<Rhs::Ratio>,
-{
-}
+impl<D: sealed::DimensionsEq<Rhs>, Rhs> DimensionsEq<Rhs> for D {}
 
 /// Represent equality of 2 fractions
 pub trait FractionEq<Rhs>: sealed::FractionEq<Rhs> {}
 
-impl<T, Rhs> FractionEq<Rhs> for T where T: sealed::FractionEq<Rhs> {}
+impl<T: sealed::FractionEq<Rhs>, Rhs> FractionEq<Rhs> for T {}
 
 mod sealed {
     use crate::fraction::Fraction;
     use core::ops::Mul;
+    use crate::{UnitTrait, DimensionsTrait};
+
+    pub trait UnitEq<Rhs> {}
+
+    impl<U, Rhs> UnitEq<Rhs> for U
+    where
+        U: UnitTrait,
+        Rhs: UnitTrait,
+        U::Dimensions: super::DimensionsEq<Rhs::Dimensions>,
+        U::Ratio: super::FractionEq<Rhs::Ratio>,
+    {}
+
+    pub trait DimensionsEq<Rhs> {}
+
+    impl<D, Rhs> DimensionsEq<Rhs> for D
+    where
+        D: DimensionsTrait,
+        Rhs: DimensionsTrait<
+            Length = D::Length,
+            Mass = D::Mass,
+            Time = D::Time,
+            ElectricCurrent = D::ElectricCurrent,
+            ThermodynamicTemperature = D::ThermodynamicTemperature,
+            AmountOfSubstance = D::AmountOfSubstance,
+            LuminousIntensity = D::LuminousIntensity,
+        >
+    {}
+
+
 
     pub trait FractionEq<Rhs> {}
 

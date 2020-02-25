@@ -6,8 +6,16 @@ use core::{
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
-use crate::{checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub}, fraction::{FractionTrait, One}, from_int::FromUnsigned, id::Id, unit::UnitTrait, units::Dimensionless, Unit};
-use crate::eq::DimensionsEq;
+use crate::{
+    checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
+    eq::DimensionsEq,
+    fraction::{FractionTrait, One},
+    from_int::FromUnsigned,
+    id::Id,
+    unit::UnitTrait,
+    units::Dimensionless,
+    Unit,
+};
 
 /// Base type of the whole lib
 ///

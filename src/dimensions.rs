@@ -60,7 +60,8 @@ impl<L, M, T, I, O, N, J> DimensionsTrait for Dimensions<L, M, T, I, O, N, J> {
     type LuminousIntensity = J;
 }
 
-/// Represent dimensions of a unit at type level by storing exponents of the [base units]:
+/// Represent dimensions of a unit at type level by storing exponents of the
+/// [base units]:
 ///
 /// - `L`, Length
 /// - `M`, Mass
@@ -71,12 +72,12 @@ impl<L, M, T, I, O, N, J> DimensionsTrait for Dimensions<L, M, T, I, O, N, J> {
 /// - `J` Luminous intensity
 ///
 /// Examples:
-/// - `Dimensions<P1, Z0, Z0, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁰ * ...` is `m` is
-///   metre (length).
-/// - `Dimensions<Z0, Z0, P1, Z0, Z0, Z0, Z0>` is `m⁰ * kg⁰ * s¹ * ...` is `s` is
-///   second (time).
-/// - `Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁻¹ * ...` is `m * s⁻¹`
-///   is `m / s` metre per second (speed)
+/// - `Dimensions<P1, Z0, Z0, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁰ * ...` is `m`
+///   is metre (length).
+/// - `Dimensions<Z0, Z0, P1, Z0, Z0, Z0, Z0>` is `m⁰ * kg⁰ * s¹ * ...` is `s`
+///   is second (time).
+/// - `Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁻¹ * ...` is `m *
+///   s⁻¹` is `m / s` metre per second (speed)
 ///
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
 #[allow(clippy::type_complexity)]
@@ -107,7 +108,8 @@ impl<L, M, T, I, O, N, J> Clone for Dimensions<L, M, T, I, O, N, J> {
 impl<L, M, T, I, O, N, J> Copy for Dimensions<L, M, T, I, O, N, J> {}
 
 /// This adds exponents at type-level. E.g.
-/// `Dimensions<1, 0, -1, ...> * Dimensions<0, 0, 1, ...> = /// Dimensions<1, 0, 0, ...>`
+/// `Dimensions<1, 0, -1, ...> * Dimensions<0, 0, 1, ...> =
+/// Dimensions<1, 0, 0, ...>`
 ///
 /// It's used for multiplying quantities.
 impl<U, L, M, T, I, O, N, J> Mul<U> for Dimensions<L, M, T, I, O, N, J>
@@ -196,18 +198,22 @@ mod tests {
     #[test]
     fn div() {
         let _: Dimensions<Z0, Z0, Z0, Z0, Z0, Z0, Z0> =
-            Dimensions::<P1, P1, P1, P1, P1, P1, P1>::new() / Dimensions::<P1, P1, P1, P1, P1, P1, P1>::new();
+            Dimensions::<P1, P1, P1, P1, P1, P1, P1>::new()
+                / Dimensions::<P1, P1, P1, P1, P1, P1, P1>::new();
 
         let _: Dimensions<N8, N7, N6, N5, N4, N3, N2> =
-            Dimensions::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() / Dimensions::<P8, P7, P6, P5, P4, P3, P2>::new();
+            Dimensions::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new()
+                / Dimensions::<P8, P7, P6, P5, P4, P3, P2>::new();
     }
 
     #[test]
     fn mul() {
         let _: Dimensions<P1, P1, P1, P1, P1, P1, P1> =
-            Dimensions::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() * Dimensions::<P1, P1, P1, P1, P1, P1, P1>::new();
+            Dimensions::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new()
+                * Dimensions::<P1, P1, P1, P1, P1, P1, P1>::new();
 
         let _: Dimensions<P8, N7, P6, N5, P4, N3, P2> =
-            Dimensions::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() * Dimensions::<P8, N7, P6, N5, P4, N3, P2>::new();
+            Dimensions::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new()
+                * Dimensions::<P8, N7, P6, N5, P4, N3, P2>::new();
     }
 }

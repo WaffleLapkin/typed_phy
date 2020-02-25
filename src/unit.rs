@@ -6,10 +6,8 @@ use core::{
 };
 
 use crate::{
-    fraction::One,
-    TypeOnly,
-    DimensionsTrait,
-    fraction::FractionTrait
+    fraction::{FractionTrait, One},
+    DimensionsTrait, TypeOnly,
 };
 
 /// Trait implemented for [`Unit`].
@@ -43,22 +41,22 @@ pub trait UnitTrait {
 
 impl<D: DimensionsTrait, R: FractionTrait> UnitTrait for Unit<D, R> {
     type Dimensions = D;
-
     type Ratio = R;
 }
 
-/// Represent unit at type level by storing exponents of the [base units] in [`Dimensions`] struct
-/// and relation to the base unit in [`Fraction`] struct:
+/// Represent unit at type level by storing exponents of the [base units] in
+/// [`Dimensions`] struct and relation to the base unit in [`Fraction`] struct:
 ///
 /// Examples:
-/// - `Unit<Dimensions<1, 0, 0, 0, 0, 0, 0>, 1/1>` is `m¹ * kg⁰ * s⁰ * ...` is `m` is
-///   metre (length).
-/// - `Unit<Dimensions<0, 0, 1, 0, 0, 0, 0>, 1/1>` is `m⁰ * kg⁰ * s¹ * ...` is `s` is
-///   second (time).
-/// - `Unit<Dimensions<1, 0, -1, 0, 0, 0, 0>, 1/1>` is `m¹ * kg⁰ * s⁻¹ * ...` is `m * s⁻¹`
-///   is `m / s` metre per second (speed)
-/// - `Unit<Dimensions<1, 0, -1, 0, 0, 0, 0>, 1000/3600>` is `m¹ * kg⁰ * s⁻¹ * ... * (1000/3600)` is `m * s⁻¹ * (1000/3600)`
-///   is `m / s` kilometre per hour (speed)
+/// - `Unit<Dimensions<1, 0, 0, 0, 0, 0, 0>, 1/1>` is `m¹ * kg⁰ * s⁰ * ...` is
+///   `m` is metre (length).
+/// - `Unit<Dimensions<0, 0, 1, 0, 0, 0, 0>, 1/1>` is `m⁰ * kg⁰ * s¹ * ...` is
+///   `s` is second (time).
+/// - `Unit<Dimensions<1, 0, -1, 0, 0, 0, 0>, 1/1>` is `m¹ * kg⁰ * s⁻¹ * ...` is
+///   `m * s⁻¹` is `m / s` metre per second (speed)
+/// - `Unit<Dimensions<1, 0, -1, 0, 0, 0, 0>, 1000/3600>` is `m¹ * kg⁰ * s⁻¹ *
+///   ... * (1000/3600)` is `m * s⁻¹ * (1000/3600)` is `m / s` kilometre per
+///   hour (speed)
 ///
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
 /// [`Dimensions`]: crate::Dimensions
@@ -101,10 +99,7 @@ where
     R: Mul<U::Ratio>,
 {
     #[allow(clippy::type_complexity)]
-    type Output = Unit<
-        <D as Mul<U::Dimensions>>::Output,
-        <R as Mul<U::Ratio>>::Output,
-    >;
+    type Output = Unit<<D as Mul<U::Dimensions>>::Output, <R as Mul<U::Ratio>>::Output>;
 
     #[inline]
     fn mul(self, _rhs: U) -> Self::Output {
@@ -125,10 +120,7 @@ where
 {
     // Yeah, it's very complex, but I can't do anything with it :(
     #[allow(clippy::type_complexity)]
-    type Output = Unit<
-        <D as Div<U::Dimensions>>::Output,
-        <R as Div<U::Ratio>>::Output,
-    >;
+    type Output = Unit<<D as Div<U::Dimensions>>::Output, <R as Div<U::Ratio>>::Output>;
 
     #[inline]
     fn div(self, _rhs: U) -> Self::Output {

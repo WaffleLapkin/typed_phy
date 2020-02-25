@@ -128,12 +128,15 @@ fn unit() {
         fraction::Fraction,
         prefixes::Kilo,
         units::{Hour, KiloGram, Metre, Second, Watt},
-        IntExt, Quantity, Unit, Dimensions,
+        Dimensions, IntExt, Quantity, Unit,
     };
 
     type U3600 = <U36 as Mul<U100>>::Output;
 
-    typenum::assert_type_eq!(Unit![Kilo<Metre> / Hour], Unit<Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>, Fraction<U1000, U3600>>);
+    typenum::assert_type_eq!(
+        Unit![Kilo<Metre> / Hour],
+        Unit<Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>, Fraction<U1000, U3600>>
+    );
 
     // was broken in first version of the Unit! macro with types support
     #[allow(clippy::type_complexity)]

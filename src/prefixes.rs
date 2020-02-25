@@ -73,13 +73,9 @@ pub type Zepto<U> = DivPow10<U, U21>;
 pub type Yocto<U> = DivPow10<U, U24>;
 
 /// Multiplies ratio of `U` by `X`
-pub(crate) type MulBy<U, X> = Unit<
-    <U as UnitTrait>::Dimensions,
-    <<U as UnitTrait>::Ratio as Mul<Frac![X / U1]>>::Output,
->;
+pub(crate) type MulBy<U, X> =
+    Unit<<U as UnitTrait>::Dimensions, <<U as UnitTrait>::Ratio as Mul<Frac![X / U1]>>::Output>;
 
 /// Divides ratio of `U` by `X`
-pub(crate) type DivBy<U, X> = Unit<
-    <U as UnitTrait>::Dimensions,
-    <<U as UnitTrait>::Ratio as Div<Frac![X / U1]>>::Output,
->;
+pub(crate) type DivBy<U, X> =
+    Unit<<U as UnitTrait>::Dimensions, <<U as UnitTrait>::Ratio as Div<Frac![X / U1]>>::Output>;

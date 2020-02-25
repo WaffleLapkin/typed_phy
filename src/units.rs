@@ -1,6 +1,10 @@
 use typenum::{P1, U24, U60, Z0};
 
-use crate::{prefixes::{Kilo, Milli, MulBy}, unit::Unit, Dimensions};
+use crate::{
+    prefixes::{Kilo, Milli, MulBy},
+    unit::Unit,
+    Dimensions,
+};
 
 /// Just integer.
 pub type Dimensionless = Unit<Dimensions<Z0, Z0, Z0, Z0, Z0, Z0, Z0>>;

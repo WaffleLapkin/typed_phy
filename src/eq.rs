@@ -16,9 +16,8 @@ pub trait FractionEq<Rhs>: sealed::FractionEq<Rhs> {}
 impl<T: sealed::FractionEq<Rhs>, Rhs> FractionEq<Rhs> for T {}
 
 mod sealed {
-    use crate::fraction::Fraction;
+    use crate::{fraction::Fraction, DimensionsTrait, UnitTrait};
     use core::ops::Mul;
-    use crate::{UnitTrait, DimensionsTrait};
 
     pub trait UnitEq<Rhs> {}
 
@@ -28,7 +27,8 @@ mod sealed {
         Rhs: UnitTrait,
         U::Dimensions: super::DimensionsEq<Rhs::Dimensions>,
         U::Ratio: super::FractionEq<Rhs::Ratio>,
-    {}
+    {
+    }
 
     pub trait DimensionsEq<Rhs> {}
 
@@ -43,10 +43,9 @@ mod sealed {
             ThermodynamicTemperature = D::ThermodynamicTemperature,
             AmountOfSubstance = D::AmountOfSubstance,
             LuminousIntensity = D::LuminousIntensity,
-        >
-    {}
-
-
+        >,
+    {
+    }
 
     pub trait FractionEq<Rhs> {}
 

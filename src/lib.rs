@@ -76,20 +76,20 @@ pub mod simplify;
 pub mod units;
 
 /* private, but reexported */
+mod dimensions;
 mod eq;
 mod ext;
 mod id;
 mod quantity;
 mod unit;
-mod dimensions;
 
 pub use self::{
+    dimensions::{Dimensions, DimensionsTrait},
     eq::{FractionEq, UnitEq},
     ext::IntExt,
     id::Id,
     quantity::Quantity,
     unit::{Unit, UnitTrait},
-    dimensions::{Dimensions, DimensionsTrait},
 };
 
 /// Invariant over `T` and doesn't own it.

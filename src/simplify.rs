@@ -39,11 +39,11 @@ where
     }
 }
 
-impl<L, M, T, I, O, N, J, R> Simplify for Unit<L, M, T, I, O, N, J, R>
+impl<D, R> Simplify for Unit<D, R>
 where
     R: Simplify,
 {
-    type Output = Unit<L, M, T, I, O, N, J, R::Output>;
+    type Output = Unit<D, R::Output>;
 
     #[inline]
     fn simplify(self) -> Self::Output {

@@ -76,6 +76,7 @@ pub mod simplify;
 pub mod units;
 
 /* private, but reexported */
+mod dimensions;
 mod eq;
 mod ext;
 mod id;
@@ -83,6 +84,7 @@ mod quantity;
 mod unit;
 
 pub use self::{
+    dimensions::{Dimensions, DimensionsTrait},
     eq::{FractionEq, UnitEq},
     ext::IntExt,
     id::Id,

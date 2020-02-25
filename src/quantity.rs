@@ -8,6 +8,7 @@ use core::{
 
 use crate::{
     checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
+    eq::DimensionsEq,
     fraction::{FractionTrait, One},
     from_int::FromUnsigned,
     id::Id,
@@ -203,17 +204,7 @@ where
     pub fn to<T>(self) -> Quantity<S, T>
     where
         T: UnitTrait,
-        T::Ratio: FractionTrait,
-        // Can't use `UnitEq` because we don't need ratio to be equal
-        U: UnitTrait<
-            Length = T::Length,
-            Mass = T::Mass,
-            Time = T::Time,
-            ElectricCurrent = T::ElectricCurrent,
-            ThermodynamicTemperature = T::ThermodynamicTemperature,
-            AmountOfSubstance = T::AmountOfSubstance,
-            LuminousIntensity = T::LuminousIntensity,
-        >,
+        U::Dimensions: DimensionsEq<T::Dimensions>,
     {
         Quantity::new(T::Ratio::div(U::Ratio::mul(self.storage)))
     }
@@ -231,21 +222,7 @@ where
     #[inline]
     #[allow(clippy::wrong_self_convention)] // TODO: better name
     #[allow(clippy::type_complexity)]
-    pub fn to_base(
-        self,
-    ) -> Quantity<
-        S,
-        Unit<
-            U::Length,
-            U::Mass,
-            U::Time,
-            U::ElectricCurrent,
-            U::ThermodynamicTemperature,
-            U::AmountOfSubstance,
-            U::LuminousIntensity,
-            One,
-        >,
-    > {
+    pub fn to_base(self) -> Quantity<S, Unit<U::Dimensions, One>> {
         self.to()
     }
 }

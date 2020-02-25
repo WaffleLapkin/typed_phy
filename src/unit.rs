@@ -2,10 +2,13 @@ use core::{
     any::type_name,
     fmt::{Debug, Error, Formatter},
     marker::PhantomData,
-    ops::{Add, Div, Mul, Sub},
+    ops::{Div, Mul},
 };
 
-use crate::{fraction::One, TypeOnly};
+use crate::{
+    fraction::{FractionTrait, One},
+    DimensionsTrait, TypeOnly,
+};
 
 /// Trait implemented for [`Unit`].
 /// Mostly needed to simplify bound and write
@@ -20,7 +23,7 @@ use crate::{fraction::One, TypeOnly};
 /// ```
 /// # use typed_phy::Unit;
 /// # trait Trait {}
-/// impl<L, M, T, I, O, N, J, R> Trait for Unit<L, M, T, I, O, N, J, R> {
+/// impl<D, R> Trait for Unit<D, R> {
 ///     /* ... */
 /// }
 /// ```
@@ -29,73 +32,45 @@ use crate::{fraction::One, TypeOnly};
 ///
 /// [`Unit`]: struct@Unit
 pub trait UnitTrait {
-    /// Length, base unit: metre
-    type Length;
-
-    /// Mass, base unit: kilogram
-    type Mass;
-
-    /// Time, base unit: second
-    type Time;
-
-    /// Electric current, base unit: ampere
-    type ElectricCurrent;
-
-    /// Thermodynamic temperature, base unit: kelvin
-    type ThermodynamicTemperature;
-
-    /// Amount of substance, base unit: mole
-    type AmountOfSubstance;
-
-    /// Luminous intensity, base unit: candela
-    type LuminousIntensity;
+    ///
+    type Dimensions: DimensionsTrait;
 
     /// Ratio
-    type Ratio;
+    type Ratio: FractionTrait;
 }
 
-#[rustfmt::skip] // I don't want assoc types to be reordered
-impl<L, M, T, I, O, N, J, R> UnitTrait for Unit<L, M, T, I, O, N, J, R> {
-    type Length = L;
-    type Mass = M;
-    type Time = T;
-    type ElectricCurrent = I;
-    type ThermodynamicTemperature = O;
-    type AmountOfSubstance = N;
-    type LuminousIntensity = J;
+impl<D: DimensionsTrait, R: FractionTrait> UnitTrait for Unit<D, R> {
+    type Dimensions = D;
     type Ratio = R;
 }
 
-/// Represent unit at type level by storing exponents of the [base units]:
-///
-/// - `L`, Length
-/// - `M`, Mass
-/// - `T`, Time
-/// - `I`, Electric current
-/// - `O` Thermodynamic temperature
-/// - `N` Amount of substance
-/// - `J` Luminous intensity
+/// Represent unit at type level by storing exponents of the [base units] in
+/// [`Dimensions`] struct and relation to the base unit in [`Fraction`] struct:
 ///
 /// Examples:
-/// - `Unit<P1, Z0, Z0, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁰ * ...` is `m` is
-///   metre (length).
-/// - `Unit<Z0, Z0, P1, Z0, Z0, Z0, Z0>` is `m⁰ * kg⁰ * s¹ * ...` is `s` is
-///   second (time).
-/// - `Unit<P1, Z0, N1, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁻¹ * ...` is `m * s⁻¹`
-///   is `m / s` metre per second (speed)
+/// - `Unit<Dimensions<1, 0, 0, 0, 0, 0, 0>, 1/1>` is `m¹ * kg⁰ * s⁰ * ...` is
+///   `m` is metre (length).
+/// - `Unit<Dimensions<0, 0, 1, 0, 0, 0, 0>, 1/1>` is `m⁰ * kg⁰ * s¹ * ...` is
+///   `s` is second (time).
+/// - `Unit<Dimensions<1, 0, -1, 0, 0, 0, 0>, 1/1>` is `m¹ * kg⁰ * s⁻¹ * ...` is
+///   `m * s⁻¹` is `m / s` metre per second (speed)
+/// - `Unit<Dimensions<1, 0, -1, 0, 0, 0, 0>, 1000/3600>` is `m¹ * kg⁰ * s⁻¹ *
+///   ... * (1000/3600)` is `m * s⁻¹ * (1000/3600)` is `m / s` kilometre per
+///   hour (speed)
 ///
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
-#[allow(clippy::type_complexity)]
-pub struct Unit<L, M, T, I, O, N, J, R = One>(TypeOnly<(L, M, T, I, O, N, J, R)>);
+/// [`Dimensions`]: crate::Dimensions
+/// [`Fraction`]: crate::Fraction
+pub struct Unit<D, R = One>(TypeOnly<(D, R)>);
 
-impl<L, M, T, I, O, N, J, R> Unit<L, M, T, I, O, N, J, R> {
+impl<D, R> Unit<D, R> {
     pub(crate) fn new() -> Self {
         Self(PhantomData::default())
     }
 }
 
 // We need to use handwritten impls to prevent unnecessary bounds on generics
-impl<L, M, T, I, O, N, J, R> Debug for Unit<L, M, T, I, O, N, J, R> {
+impl<D, R> Debug for Unit<D, R> {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         // TODO: add options to human-readable format
@@ -103,43 +78,28 @@ impl<L, M, T, I, O, N, J, R> Debug for Unit<L, M, T, I, O, N, J, R> {
     }
 }
 
-impl<L, M, T, I, O, N, J, R> Clone for Unit<L, M, T, I, O, N, J, R> {
+impl<D, R> Clone for Unit<D, R> {
     #[inline]
     fn clone(&self) -> Self {
         Self::new()
     }
 }
 
-impl<L, M, T, I, O, N, J, R> Copy for Unit<L, M, T, I, O, N, J, R> {}
+impl<D, R> Copy for Unit<D, R> {}
 
 /// This adds exponents and multiplies ratios at type-level. E.g.
 /// `Unit<1, 0, -1, ..., 1/10> * Unit<0, 0, 1, ..., 10/1> =
 /// Unit<1, 0, 0, ..., 1/1>`
 ///
 /// It's used for multiplying quantities.
-impl<U, L, M, T, I, O, N, J, R> Mul<U> for Unit<L, M, T, I, O, N, J, R>
+impl<U, D, R> Mul<U> for Unit<D, R>
 where
     U: UnitTrait,
-    L: Add<U::Length>,
-    M: Add<U::Mass>,
-    T: Add<U::Time>,
-    I: Add<U::ElectricCurrent>,
-    O: Add<U::ThermodynamicTemperature>,
-    N: Add<U::AmountOfSubstance>,
-    J: Add<U::LuminousIntensity>,
+    D: Mul<U::Dimensions>,
     R: Mul<U::Ratio>,
 {
     #[allow(clippy::type_complexity)]
-    type Output = Unit<
-        <L as Add<U::Length>>::Output,
-        <M as Add<U::Mass>>::Output,
-        <T as Add<U::Time>>::Output,
-        <I as Add<U::ElectricCurrent>>::Output,
-        <O as Add<U::ThermodynamicTemperature>>::Output,
-        <N as Add<U::AmountOfSubstance>>::Output,
-        <J as Add<U::LuminousIntensity>>::Output,
-        <R as Mul<U::Ratio>>::Output,
-    >;
+    type Output = Unit<<D as Mul<U::Dimensions>>::Output, <R as Mul<U::Ratio>>::Output>;
 
     #[inline]
     fn mul(self, _rhs: U) -> Self::Output {
@@ -152,30 +112,15 @@ where
 /// Unit<1, 0, -2, ..., 1/100>`
 ///
 /// It's used for dividing quantities.
-impl<U, L, M, T, I, O, N, J, R> Div<U> for Unit<L, M, T, I, O, N, J, R>
+impl<U, D, R> Div<U> for Unit<D, R>
 where
     U: UnitTrait,
-    L: Sub<U::Length>,
-    M: Sub<U::Mass>,
-    T: Sub<U::Time>,
-    I: Sub<U::ElectricCurrent>,
-    O: Sub<U::ThermodynamicTemperature>,
-    N: Sub<U::AmountOfSubstance>,
-    J: Sub<U::LuminousIntensity>,
+    D: Div<U::Dimensions>,
     R: Div<U::Ratio>,
 {
     // Yeah, it's very complex, but I can't do anything with it :(
     #[allow(clippy::type_complexity)]
-    type Output = Unit<
-        <L as Sub<U::Length>>::Output,
-        <M as Sub<U::Mass>>::Output,
-        <T as Sub<U::Time>>::Output,
-        <I as Sub<U::ElectricCurrent>>::Output,
-        <O as Sub<U::ThermodynamicTemperature>>::Output,
-        <N as Sub<U::AmountOfSubstance>>::Output,
-        <J as Sub<U::LuminousIntensity>>::Output,
-        <R as Div<U::Ratio>>::Output,
-    >;
+    type Output = Unit<<D as Div<U::Dimensions>>::Output, <R as Div<U::Ratio>>::Output>;
 
     #[inline]
     fn div(self, _rhs: U) -> Self::Output {
@@ -187,8 +132,6 @@ where
 mod tests {
     use core::fmt::Debug;
 
-    use typenum::{N2, N3, N4, N5, N6, N7, N8, P1, P2, P3, P4, P5, P6, P7, P8, Z0};
-
     use crate::Unit;
 
     /// Test that `Unit` implement `Debug + Clone + Copy`
@@ -198,27 +141,9 @@ mod tests {
     fn traits() {
         fn assert_bounds<T: Debug + Clone + Copy>(_: T) {}
 
-        fn check<L, M, T, I, O, N, J /* no bounds */>() {
+        fn check<D, R /* no bounds */>() {
             // check that traits are implemented for any generics
-            assert_bounds(Unit::<L, M, T, I, O, N, J>::new())
+            assert_bounds(Unit::<D, R>::new())
         }
-    }
-
-    #[test]
-    fn div() {
-        let _: Unit<Z0, Z0, Z0, Z0, Z0, Z0, Z0> =
-            Unit::<P1, P1, P1, P1, P1, P1, P1>::new() / Unit::<P1, P1, P1, P1, P1, P1, P1>::new();
-
-        let _: Unit<N8, N7, N6, N5, N4, N3, N2> =
-            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() / Unit::<P8, P7, P6, P5, P4, P3, P2>::new();
-    }
-
-    #[test]
-    fn mul() {
-        let _: Unit<P1, P1, P1, P1, P1, P1, P1> =
-            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() * Unit::<P1, P1, P1, P1, P1, P1, P1>::new();
-
-        let _: Unit<P8, N7, P6, N5, P4, N3, P2> =
-            Unit::<Z0, Z0, Z0, Z0, Z0, Z0, Z0>::new() * Unit::<P8, N7, P6, N5, P4, N3, P2>::new();
     }
 }

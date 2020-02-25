@@ -84,8 +84,17 @@ impl<L, M, T, I, O, N, J> DimensionsTrait for Dimensions<L, M, T, I, O, N, J> {
 pub struct Dimensions<L, M, T, I, O, N, J>(TypeOnly<(L, M, T, I, O, N, J)>);
 
 impl<L, M, T, I, O, N, J> Dimensions<L, M, T, I, O, N, J> {
-    pub(crate) fn new() -> Self {
-        Self(PhantomData::default())
+    /// Create new dimensions
+    #[inline]
+    pub const fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<L, M, T, I, O, N, J> Default for Dimensions<L, M, T, I, O, N, J> {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
     }
 }
 

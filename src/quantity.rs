@@ -227,6 +227,16 @@ where
     }
 }
 
+impl<S, U> Default for Quantity<S, U>
+where
+    S: Default,
+{
+    #[inline]
+    fn default() -> Self {
+        Self::new(S::default())
+    }
+}
+
 /// Addition between 2 quantities of the same unit (`U`) and storage (`S`).
 ///
 /// ## Examples

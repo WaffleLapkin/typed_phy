@@ -64,8 +64,17 @@ impl<D: DimensionsTrait, R: FractionTrait> UnitTrait for Unit<D, R> {
 pub struct Unit<D, R = One>(TypeOnly<(D, R)>);
 
 impl<D, R> Unit<D, R> {
-    pub(crate) fn new() -> Self {
-        Self(PhantomData::default())
+    /// Create new unit
+    #[inline]
+    pub const fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<D, R> Default for Unit<D, R> {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
     }
 }
 

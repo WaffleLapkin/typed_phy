@@ -183,7 +183,6 @@ where
     U: UnitTrait,
     U::Ratio: FractionTrait,
     S: FromUnsigned + Mul<Output = S> + Div<Output = S>,
-    S: Debug,
 {
     /// ## Examples
     ///

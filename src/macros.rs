@@ -163,6 +163,10 @@ macro_rules! Frac {
     ($a:ident / $b:ty) => {
         $crate::fraction::Fraction::<$a, $b>
     };
+    (/ $b:ty) => {
+        $crate::fraction::Fraction::<typenum::U1, $b>
+        //                           ^^^^^^^^^^^ TODO: crate reexport
+    };
     ($a:ty) => {
         $crate::fraction::Fraction::<$a, typenum::U1>
         //                              ^^^^^^^^^^^ TODO: crate reexport

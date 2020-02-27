@@ -111,6 +111,11 @@ macro_rules! Unit {
         $t
     };
 
+    // Empty call = dimensionless
+    () => {
+        $crate::units::Dimensionless
+    };
+
     // Early start (user of the method should call this branch)
     // Calls @replace sub-macro
     ($( $anything:tt )+) => {
@@ -127,7 +132,7 @@ fn unit() {
     use crate::{
         fraction::Fraction,
         prefixes::Kilo,
-        units::{Hour, KiloGram, Metre, Second, Watt},
+        units::{Hour, KiloGram, Metre, Second, Watt, Dimensionless},
         Dimensions, IntExt, Quantity, Unit,
     };
 
@@ -136,6 +141,11 @@ fn unit() {
     typenum::assert_type_eq!(
         Unit![Kilo<Metre> / Hour],
         Unit<Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>, Fraction<U1000, U3600>>
+    );
+
+    typenum::assert_type_eq!(
+        Unit![],
+        Dimensionless
     );
 
     // was broken in first version of the Unit! macro with types support

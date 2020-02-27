@@ -1,9 +1,10 @@
 use core::{
-    any::type_name,
-    fmt::{Debug, Error, Formatter},
+    fmt,
     marker::PhantomData,
     ops::{Add, Div, Mul, Sub},
 };
+
+use typenum::Integer;
 
 use crate::TypeOnly;
 
@@ -28,29 +29,32 @@ use crate::TypeOnly;
 /// [`Dimesnsions`]: struct@Dimensions
 pub trait DimensionsTrait {
     /// Length, base unit: metre
-    type Length;
+    type Length: Integer;
 
     /// Mass, base unit: kilogram
-    type Mass;
+    type Mass: Integer;
 
     /// Time, base unit: second
-    type Time;
+    type Time: Integer;
 
     /// Electric current, base unit: ampere
-    type ElectricCurrent;
+    type ElectricCurrent: Integer;
 
     /// Thermodynamic temperature, base unit: kelvin
-    type ThermodynamicTemperature;
+    type ThermodynamicTemperature: Integer;
 
     /// Amount of substance, base unit: mole
-    type AmountOfSubstance;
+    type AmountOfSubstance: Integer;
 
     /// Luminous intensity, base unit: candela
-    type LuminousIntensity;
+    type LuminousIntensity: Integer;
 }
 
 #[rustfmt::skip] // I don't want assoc types to be reordered
-impl<L, M, T, I, O, N, J> DimensionsTrait for Dimensions<L, M, T, I, O, N, J> {
+impl<L, M, T, I, O, N, J> DimensionsTrait for Dimensions<L, M, T, I, O, N, J>
+where
+    L: Integer, M: Integer, T: Integer, I: Integer, O: Integer, N: Integer, J: Integer
+{
     type Length = L;
     type Mass = M;
     type Time = T;
@@ -107,6 +111,7 @@ impl<L, M, T, I, O, N, J> Debug for Dimensions<L, M, T, I, O, N, J> {
     }
 }
 
+// We need to use handwritten impls to prevent unnecessary bounds on generics
 impl<L, M, T, I, O, N, J> Clone for Dimensions<L, M, T, I, O, N, J> {
     #[inline]
     fn clone(&self) -> Self {

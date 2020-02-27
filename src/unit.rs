@@ -6,10 +6,9 @@ use core::{
 
 use crate::{
     fraction::{FractionTrait, One},
+    rt::{RtDimensions, RtFraction, RtUnit, UnitRtExt},
     units::*,
-    DimensionsTrait,
-    TypeOnly,
-    rt::{RtDimensions, RtFraction, UnitRtExt, RtUnit}
+    DimensionsTrait, TypeOnly,
 };
 
 /// Trait implemented for [`Unit`].
@@ -106,15 +105,16 @@ where
             Some(str) => f.write_str(str),
             None => {
                 let RtUnit {
-                    dimensions: RtDimensions {
-                        length,
-                        mass,
-                        time,
-                        electric_current,
-                        thermodynamic_temperature,
-                        amount_of_substance,
-                        luminous_intensity,
-                    },
+                    dimensions:
+                        RtDimensions {
+                            length,
+                            mass,
+                            time,
+                            electric_current,
+                            thermodynamic_temperature,
+                            amount_of_substance,
+                            luminous_intensity,
+                        },
                     ratio: RtFraction { numerator, divisor },
                 } = Self::RT;
                 let mut first = true;
@@ -306,9 +306,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{prefixes::Milli, units::*, Dimensions, Unit};
+    use crate::{
+        prefixes::{Giga, Kilo, Milli, Nano, Yotta},
+        units::*,
+        Dimensions, Unit,
+    };
     use typenum::{N1, N2, P1, Z0};
-    use crate::prefixes::{Kilo, Nano, Giga, Yotta};
 
     macro_rules! assert_display_eq {
         ($T:ty, $s:expr $(,)?) => {

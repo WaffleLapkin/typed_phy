@@ -480,19 +480,17 @@ where
 
 // We need to use handwritten impl to prevent unnecessary bounds on generics
 impl<S, U> Debug for Quantity<S, U>
-    where
-        S: Debug,
-        U: Debug + Default,
+where
+    S: Debug,
+    U: Debug + Default,
 {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(
-            format_args!(
-                "Quantity<_, {unit:?}>({value:?})",
-                value = self.storage,
-                unit = U::default(),
-            )
-        )
+        f.write_fmt(format_args!(
+            "Quantity<_, {unit:?}>({value:?})",
+            value = self.storage,
+            unit = U::default(),
+        ))
     }
 }
 
@@ -503,13 +501,11 @@ where
 {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(
-            format_args!(
-                "{value} {unit}",
-                value = self.storage,
-                unit = U::default(),
-            )
-        )
+        f.write_fmt(format_args!(
+            "{value} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
     }
 }
 
@@ -559,9 +555,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use typenum::{U15, U71, P1, N1, N2};
+    use typenum::{N1, N2, P1, U15, U71};
 
-    use crate::{IntExt, Quantity, Unit, Dimensions, prefixes::*, units::*};
+    use crate::{prefixes::*, units::*, Dimensions, IntExt, Quantity, Unit};
 
     macro_rules! assert_display_eq {
         ($T:ty, $s:expr $(,)?) => {

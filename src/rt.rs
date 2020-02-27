@@ -1,5 +1,5 @@
 //! Runtime representation of types (internal API, used for display impl(s))
-use typenum::marker_traits::{Unsigned, Integer};
+use typenum::marker_traits::{Integer, Unsigned};
 
 use crate::{fraction::FractionTrait, DimensionsTrait, UnitTrait};
 
@@ -33,10 +33,7 @@ pub(crate) trait FractionRtExt: FractionTrait {
     };
 }
 
-impl<T> FractionRtExt for T
-where
-    T: FractionTrait
-{}
+impl<T> FractionRtExt for T where T: FractionTrait {}
 
 pub(crate) trait DimensionsRtExt: DimensionsTrait {
     const RT: RtDimensions = RtDimensions {
@@ -50,10 +47,7 @@ pub(crate) trait DimensionsRtExt: DimensionsTrait {
     };
 }
 
-impl<T> DimensionsRtExt for T
-where
-    T: DimensionsTrait
-{}
+impl<T> DimensionsRtExt for T where T: DimensionsTrait {}
 
 pub(crate) trait UnitRtExt: UnitTrait {
     const RT: RtUnit = RtUnit {
@@ -62,7 +56,4 @@ pub(crate) trait UnitRtExt: UnitTrait {
     };
 }
 
-impl<T> UnitRtExt for T
-where
-    T: UnitTrait
-{}
+impl<T> UnitRtExt for T where T: UnitTrait {}

@@ -50,7 +50,7 @@
 //! Now idea should understand types of this lib.
 //!
 //! [`Unit!`]: macro@Unit
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 // For running tests from readme
 #![cfg_attr(all(doctest, feature = "nightly"), feature(external_doc))]
 // I hate missing docs
@@ -60,6 +60,7 @@
 
 #[macro_use]
 mod macros;
+mod rt;
 
 pub mod checked;
 /// Type-level fraction (`A / B`)

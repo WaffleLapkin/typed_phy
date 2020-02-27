@@ -102,12 +102,53 @@ impl<L, M, T, I, O, N, J> Default for Dimensions<L, M, T, I, O, N, J> {
     }
 }
 
-// We need to use handwritten impls to prevent unnecessary bounds on generics
-impl<L, M, T, I, O, N, J> Debug for Dimensions<L, M, T, I, O, N, J> {
+impl<L, M, T, I, O, N, J> fmt::Debug for Dimensions<L, M, T, I, O, N, J>
+where
+    L: Integer,
+    M: Integer,
+    T: Integer,
+    I: Integer,
+    O: Integer,
+    N: Integer,
+    J: Integer,
+{
     #[inline]
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        // TODO: add options to human-readable format
-        f.pad(type_name::<Self>())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "Dimensions<{L}, {M}, {T}, {I}, {O}, {N}, {J}>",
+            L = L::I8,
+            M = M::I8,
+            T = T::I8,
+            I = I::I8,
+            O = O::I8,
+            N = N::I8,
+            J = J::I8,
+        ))
+    }
+}
+
+impl<L, M, T, I, O, N, J> fmt::Display for Dimensions<L, M, T, I, O, N, J>
+where
+    L: Integer,
+    M: Integer,
+    T: Integer,
+    I: Integer,
+    O: Integer,
+    N: Integer,
+    J: Integer,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "m^{L} * kg^{M} * s^{T} * A^{I} * K^{O} * mol^{N} * cd^{J}",
+            L = L::I8,
+            M = M::I8,
+            T = T::I8,
+            I = I::I8,
+            O = O::I8,
+            N = N::I8,
+            J = J::I8,
+        ))
     }
 }
 
@@ -190,24 +231,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use core::fmt::Debug;
-
     use typenum::{N2, N3, N4, N5, N6, N7, N8, P1, P2, P3, P4, P5, P6, P7, P8, Z0};
 
     use super::Dimensions;
-
-    /// Test that `Dimensions` implement `Debug + Clone + Copy`
-    /// even if generic parameters don't.
-    #[test]
-    #[allow(dead_code)]
-    fn traits() {
-        fn assert_bounds<T: Debug + Clone + Copy>(_: T) {}
-
-        fn check<L, M, T, I, O, N, J /* no bounds */>() {
-            // check that traits are implemented for any generics
-            assert_bounds(Dimensions::<L, M, T, I, O, N, J>::new())
-        }
-    }
 
     #[test]
     fn div() {

@@ -132,7 +132,7 @@ fn unit() {
     use crate::{
         fraction::Fraction,
         prefixes::Kilo,
-        units::{Hour, KiloGram, Metre, Second, Watt, Dimensionless},
+        units::{Dimensionless, Hour, KiloGram, Metre, Second, Watt},
         Dimensions, IntExt, Quantity, Unit,
     };
 
@@ -143,10 +143,7 @@ fn unit() {
         Unit<Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>, Fraction<U1000, U3600>>
     );
 
-    typenum::assert_type_eq!(
-        Unit![],
-        Dimensionless
-    );
+    typenum::assert_type_eq!(Unit![], Dimensionless);
 
     // was broken in first version of the Unit! macro with types support
     #[allow(clippy::type_complexity)]

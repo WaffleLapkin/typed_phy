@@ -111,6 +111,11 @@ macro_rules! Unit {
         $t
     };
 
+    // Empty call = dimensionless
+    () => {
+        $crate::units::Dimensionless
+    };
+
     // Early start (user of the method should call this branch)
     // Calls @replace sub-macro
     ($( $anything:tt )+) => {
@@ -127,7 +132,7 @@ fn unit() {
     use crate::{
         fraction::Fraction,
         prefixes::Kilo,
-        units::{Hour, KiloGram, Metre, Second, Watt},
+        units::{Dimensionless, Hour, KiloGram, Metre, Second, Watt},
         Dimensions, IntExt, Quantity, Unit,
     };
 
@@ -137,6 +142,8 @@ fn unit() {
         Unit![Kilo<Metre> / Hour],
         Unit<Dimensions<P1, Z0, N1, Z0, Z0, Z0, Z0>, Fraction<U1000, U3600>>
     );
+
+    typenum::assert_type_eq!(Unit![], Dimensionless);
 
     // was broken in first version of the Unit! macro with types support
     #[allow(clippy::type_complexity)]
@@ -152,6 +159,10 @@ fn unit() {
 macro_rules! Frac {
     ($a:ident / $b:ty) => {
         $crate::fraction::Fraction::<$a, $b>
+    };
+    (/ $b:ty) => {
+        $crate::fraction::Fraction::<typenum::U1, $b>
+        //                           ^^^^^^^^^^^ TODO: crate reexport
     };
     ($a:ty) => {
         $crate::fraction::Fraction::<$a, typenum::U1>

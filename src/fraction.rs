@@ -1,5 +1,4 @@
 use core::{
-    any::type_name,
     fmt,
     marker::PhantomData,
     ops::{Div, Mul},
@@ -176,9 +175,57 @@ where
 
 impl<N, D> Eq for Fraction<N, D> where Self: FractionEq<Self> {}
 
-impl<N, D> fmt::Debug for Fraction<N, D> {
+impl<N, D> fmt::Debug for Fraction<N, D>
+where
+    N: Unsigned,
+    D: Unsigned,
+{
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.pad(type_name::<Self>())
+        f.write_fmt(format_args!(
+            "Fraction<{numerator}/{divisor}>",
+            numerator = N::U64,
+            divisor = D::U64,
+        ))
+    }
+}
+
+impl<N, D> fmt::Display for Fraction<N, D>
+where
+    N: Unsigned,
+    D: Unsigned,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{numerator} / {divisor}",
+            numerator = N::U64,
+            divisor = D::U64,
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Mul;
+    use typenum::{U1, U100, U1000, U36};
+
+    type U3600 = <U36 as Mul<U100>>::Output;
+
+    #[test]
+    fn debug() {
+        assert_eq!(format!("{:?}", <Frac![U1]>::new()), "Fraction<1/1>");
+        assert_eq!(format!("{:?}", <Frac![U1 / U1]>::new()), "Fraction<1/1>");
+        assert_eq!(
+            format!("{:?}", <Frac![U1000 / U3600]>::new()),
+            "Fraction<1000/3600>"
+        );
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(format!("{}", <Frac![U1]>::new()), "1 / 1");
+        assert_eq!(format!("{}", <Frac![U1 / U1]>::new()), "1 / 1");
+        assert_eq!(format!("{}", <Frac![U1000 / U3600]>::new()), "1000 / 3600");
     }
 }

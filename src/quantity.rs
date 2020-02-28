@@ -1,7 +1,6 @@
 use core::{
-    any::type_name,
     cmp::Ordering,
-    fmt::{Debug, Error, Formatter},
+    fmt::{self, Debug, Display},
     marker::PhantomData,
     ops::{Add, Div, Mul, Neg, Sub},
 };
@@ -482,13 +481,30 @@ where
 impl<S, U> Debug for Quantity<S, U>
 where
     S: Debug,
+    U: Debug + Default,
 {
     #[inline]
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        // TODO: more human readable formatting options
-        f.debug_tuple(type_name::<Self>())
-            .field(&self.storage)
-            .finish()
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "Quantity<_, {unit:?}>({value:?})",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> Display for Quantity<S, U>
+where
+    S: Display,
+    U: Display + Default,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
     }
 }
 
@@ -538,9 +554,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use core::fmt::Debug;
+    use typenum::{N1, N2, P1, U15, U71};
 
-    use crate::{IntExt, Quantity};
+    use crate::{prefixes::*, units::*, Dimensions, IntExt, Quantity, Unit};
+
+    macro_rules! assert_display_eq {
+        ($T:ty, $s:expr $(,)?) => {
+            assert_eq!(format!("{}", Quantity::<_, $T>::new(42)), $s);
+        };
+    }
 
     #[test]
     fn simple() {
@@ -552,19 +574,14 @@ mod tests {
         assert_eq!(speed, 4.mps());
     }
 
-    /// Test that `Quantity` implement `Debug + Clone + Copy + Eq + PartialEq +
-    /// Ord + PartialOrd` even if unit doesn't.
     #[test]
-    #[allow(dead_code)]
-    fn traits() {
-        fn assert_bounds<T: Debug + Clone + Copy + Eq + PartialEq>(_: T) {}
-
-        fn check<S, T /* no bounds, any T */>(s: S)
-        where
-            S: Debug + Clone + Copy + Eq + PartialEq + Ord + PartialOrd,
-        {
-            // check that traits are implemented for any T
-            assert_bounds(Quantity::<_, T>::new(s))
-        }
+    fn display() {
+        assert_display_eq!(Metre, "42 m");
+        assert_display_eq!(Kilo::<Hertz>, "42 kHz");
+        assert_display_eq!(Pico::<Second>, "42 ps");
+        assert_display_eq!(
+            Unit::<Dimensions<P1, N2, P1, N1, N1, P1, P1>, Frac![U15 / U71]>,
+            "42 m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 15/71)",
+        );
     }
 }

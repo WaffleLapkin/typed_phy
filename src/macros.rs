@@ -161,11 +161,9 @@ macro_rules! Frac {
         $crate::fraction::Fraction::<$a, $b>
     };
     (/ $b:ty) => {
-        $crate::fraction::Fraction::<typenum::U1, $b>
-        //                           ^^^^^^^^^^^ TODO: crate reexport
+        $crate::fraction::Fraction::<$crate::reexport::U1, $b>
     };
     ($a:ty) => {
-        $crate::fraction::Fraction::<$a, typenum::U1>
-        //                              ^^^^^^^^^^^ TODO: crate reexport
+        $crate::fraction::Fraction::<$a, $crate::reexport::U1>
     };
 }

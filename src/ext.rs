@@ -92,6 +92,7 @@ impl IntExt for i8 {}
 impl IntExt for i16 {}
 impl IntExt for i32 {}
 impl IntExt for i64 {}
+impl IntExt for i128 {}
 impl IntExt for isize {}
 
 // Unsigned
@@ -99,10 +100,11 @@ impl IntExt for u8 {}
 impl IntExt for u16 {}
 impl IntExt for u32 {}
 impl IntExt for u64 {}
+impl IntExt for u128 {}
 impl IntExt for usize {}
 
 // Float
 impl IntExt for f32 {}
 impl IntExt for f64 {}
 
-// TODO i/u128 and BigInt support?
+// TODO BigInt support?

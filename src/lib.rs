@@ -94,9 +94,7 @@ pub use self::{
 };
 
 /// Invariant over `T` and doesn't own it.
-// FIXME replace back, as https://github.com/rust-lang/rust/issues/69459 would be resolved
-pub(crate) type TypeOnly<T> = core::marker::PhantomData<T>;
-//pub(crate) type TypeOnly<T> = core::marker::PhantomData<fn(T) -> T>;
+pub(crate) type TypeOnly<T> = core::marker::PhantomData<fn(T) -> T>;
 
 /// UI tests to see weird type errors.
 ///

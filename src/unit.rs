@@ -65,10 +65,16 @@ impl<D: DimensionsTrait, R: FractionTrait> UnitTrait for Unit<D, R> {
 pub struct Unit<D, R = One>(TypeOnly<(D, R)>);
 
 impl<D, R> Unit<D, R> {
+    /// Workaround for creating struct in const fn.
+    /// See https://github.com/rust-lang/rust/issues/69459
+    const NEW: Self = Self(PhantomData);
+}
+
+impl<D, R> Unit<D, R> {
     /// Create new unit
     #[inline]
     pub const fn new() -> Self {
-        Self(PhantomData)
+        Self::NEW
     }
 }
 

@@ -116,3 +116,9 @@ fn ui() {
 #[cfg_attr(feature = "nightly", doc(include = "../README.md"))]
 #[cfg(doctest)]
 pub struct ReadmeDocTests;
+
+/// Reexport for macros
+#[doc(hidden)]
+pub mod reexport {
+    pub use typenum::U1;
+}

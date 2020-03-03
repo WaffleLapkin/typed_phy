@@ -53,8 +53,7 @@ macro_rules! checked_impls {
     }
 }
 
-// TODO: {u,i}128?
-checked_impls!(impl CheckedAdd by checked_add for u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
-checked_impls!(impl CheckedSub by checked_sub for u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
-checked_impls!(impl CheckedMul by checked_mul for u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
-checked_impls!(impl CheckedDiv by checked_div for u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
+checked_impls!(impl CheckedAdd by checked_add for u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+checked_impls!(impl CheckedSub by checked_sub for u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+checked_impls!(impl CheckedMul by checked_mul for u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+checked_impls!(impl CheckedDiv by checked_div for u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);

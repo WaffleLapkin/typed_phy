@@ -43,72 +43,71 @@ macro_rules! Unit {
     // It replaces *, / and ^ with {*}, {/} and {^}
     // and calls @prepare
     (@replace $( $t:tt )+) => {
-        Unit![@replace_inner [] [ $( $t )+ ]]
+        $crate::Unit![@replace_inner [] [ $( $t )+ ]]
     };
     (@replace_inner [ $( $head:tt )* ] [ * $( $tail:tt )* ]) => {
-        Unit!(@replace_inner [ $( $head )* {*} ] [ $( $tail )* ])
+        $crate::Unit!(@replace_inner [ $( $head )* {*} ] [ $( $tail )* ])
     };
     (@replace_inner [ $( $head:tt )* ] [ / $( $tail:tt )* ]) => {
-        Unit!(@replace_inner [ $( $head )* {/} ] [ $( $tail )* ])
+        $crate::Unit!(@replace_inner [ $( $head )* {/} ] [ $( $tail )* ])
     };
     (@replace_inner [ $( $head:tt )* ] [ ^ $( $tail:tt )* ]) => {
-        Unit!(@replace_inner [ $( $head )* {^} ] [ $( $tail )* ])
+        $crate::Unit!(@replace_inner [ $( $head )* {^} ] [ $( $tail )* ])
     };
     (@replace_inner [ $( $head:tt )* ] [ $it:tt $( $tail:tt )* ]) => {
-        Unit!(@replace_inner [ $( $head )* $it ] [ $( $tail )* ])
+        $crate::Unit!(@replace_inner [ $( $head )* $it ] [ $( $tail )* ])
     };
     (@replace_inner [ $( $head:tt )+ ] [] ) => {
-        Unit![@prepare $( $head )+ ]
-    };
-
-    // @prepare sub-macro
-    (@prepare $( $tail:tt )+) => {
-        Unit![$crate::units::Dimensionless => {*} $( $tail )+]
+        $crate::Unit![@prepare [] [{*} $( $head )+] ]
     };
 
 
-    ($t:ty => {$op:tt} $a:ty {^} -$n:tt $( $tts:tt )*) => {
-        Unit![@exp $t => {$op}; $a {^} -$n; $( $tts )*]
+    (@prepare [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} -$n:tt $( $tail:tt )*]) => {
+        $crate::Unit![@exp [$( {$p_op} $p_t , )*] [{$op} $t {^} -$n] [ $( $tail )* ] ]
     };
-    ($t:ty => {$op:tt} $a:ty {^} $n:tt $( $tts:tt )*) => {
-        Unit![@exp $t => {$op}; $a {^} $n; $( $tts )*]
+    (@prepare [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} $n:tt $( $tail:tt )*]) => {
+        $crate::Unit![@exp [$( {$p_op} $p_t , )*] [{$op} $t {^} $n] [ $( $tail )* ] ]
     };
-    ($t:ty => {*} $a:ty $( {$next:tt} $( $tts:tt )+ )?) => {
-        Unit![<$t as core::ops::Mul<$a>>::Output => $( {$next} $( $tts )+ )?]
-    };
-    ($t:ty => {/} $a:ty $( {$next:tt} $( $tts:tt )+ )?) => {
-        Unit![<$t as core::ops::Div<$a>>::Output => $( {$next} $( $tts )+ )?]
+    (@prepare [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty $( {$next_op:tt} $( $tail:tt )+ )?]) => {
+        $crate::Unit![@prepare [$( {$p_op} $p_t , )* {$op} $t, ] [ $( {$next_op} $( $tail )+ )?] ]
     };
 
-    // Start of @exp sub-macro
-    (@exp $t:ty => {$op:tt}; $a:ty {^} 4; $( $tts:tt )*) => {
-        Unit![$t => {$op} $a {$op} $a {$op} $a {$op} $a $( $tts )*]
+    (@prepare [ {*} $t:ty, $( {$t_op:tt} $t_t:ty , )* ] []) => {
+        $crate::Unit![@exec $t $( {$t_op} $t_t )* ]
     };
-    (@exp $t:ty => {$op:tt}; $a:ty {^} 3; $( $tts:tt )*) => {
-        Unit![$t => {$op} $a {$op} $a {$op} $a $( $tts )*]
+
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{*} $t:ty {^} -$n:tt] [ $( $tail:tt )* ]) => {
+        $crate::Unit![@exp [ $( {$p_op} $p_t , )* ] [{/} $t {^} $n] [ $( $tail )* ] ]
     };
-    (@exp $t:ty => {$op:tt}; $a:ty {^} 2; $( $tts:tt )*) => {
-        Unit![$t => {$op} $a {$op} $a $( $tts )*]
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{/} $t:ty {^} -$n:tt] [ $( $tail:tt )* ]) => {
+        $crate::Unit![@exp [ $( {$p_op} $p_t , )* ] [{*} $t:ty {^} $n] [ $( $tail )* ] ]
     };
-    (@exp $t:ty => {$op:tt}; $a:ty {^} 1; $( $tts:tt )*) => {
-        Unit![$t => {$op} $a $( $tts )*]
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 1] [ $( $tail:tt )* ]) => {
+        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, ] [ $( $tail )* ] ]
     };
-    (@exp $t:ty => {$op:tt}; $a:ty {^} 0; $( $tts:tt )*) => {
-        Unit![$t => $( $tts )*]
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 2] [ $( $tail:tt )* ]) => {
+        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, {$op} $t, ] [ $( $tail )* ] ]
     };
-    (@exp $t:ty => {/} ; $a:ty {^} -$lit:tt; $( $tts:tt )*) => {
-        Unit![@exp $t => {*} ; $a {^} $lit; $( $tts )*]
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 3] [ $( $tail:tt )* ]) => {
+        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, {$op} $t, {$op} $t, ] [ $( $tail )* ] ]
     };
-    (@exp $t:ty => {*} ; $a:ty {^} -$lit:tt; $( $tts:tt )*) => {
-        Unit![@exp $t => {/} ; $a {^} $lit; $( $tts )*]
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 4] [ $( $tail:tt )* ]) => {
+        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, {$op} $t, {$op} $t, {$op} $t, ] [ $( $tail )* ] ]
     };
-    (@exp $t:ty => {$op:tt} ; $a:ty {^} $lit:tt; $( $tts:tt )*) => {
-        compiler_error!("Only exponents from -4 to 4 are supported")
+    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} $n:tt] [ $( $tail:tt )* ]) => {
+        compile_error!(concat!("Expected exponent number in bounds [-4; 4], found `", stringify!($n), "`"));
+    };
+
+    (@exec $a:ty {*} $b:ty $( {$next_op:tt} $( $tail:tt )+ )?) => {
+        $crate::Unit![<$a as core::ops::Mul<$b>>::Output $( {$next_op} $( $tail )+ )?]
+    };
+    (@exec $a:ty {/} $b:ty $( {$next_op:tt} $( $tail:tt )+ )?) => {
+        $crate::Unit![<$a as core::ops::Div<$b>>::Output $( {$next_op} $( $tail )+ )?]
     };
 
     // End
-    ($t:ty =>) => {
-        $t
+    (@exec $res:ty) => {
+        $res
     };
 
     // Empty call = dimensionless
@@ -116,12 +115,20 @@ macro_rules! Unit {
         $crate::units::Dimensionless
     };
 
+    // Unknown command
+    (@ $( $anything:tt )*) => {
+        compile_error!(concat!("Expected type, found `@`. This is caused either by \
+calling `typed_phy::Unit` with `@` at the start (instead of a type) or by the \
+bug in the macro. In the second case please open an issue on github. Input: ", stringify!(@ $( $anything )*)))
+    };
+
     // Early start (user of the method should call this branch)
     // Calls @replace sub-macro
     ($( $anything:tt )+) => {
-        Unit![@replace $($anything)+]
-    }
+        $crate::Unit![@replace $($anything)+]
+    };
 }
+
 
 #[test]
 fn unit() {

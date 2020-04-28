@@ -37,77 +37,191 @@
 #[macro_export]
 #[allow(non_snake_case)]
 macro_rules! Unit {
-    // TODO: audit&document this macro
-
-    // Start of @replace sub-macro.
-    // It replaces *, / and ^ with {*}, {/} and {^}
-    // and calls @prepare
-    (@replace $( $t:tt )+) => {
-        $crate::Unit![@replace_inner [] [ $( $t )+ ]]
-    };
-    (@replace_inner [ $( $head:tt )* ] [ * $( $tail:tt )* ]) => {
-        $crate::Unit!(@replace_inner [ $( $head )* {*} ] [ $( $tail )* ])
-    };
-    (@replace_inner [ $( $head:tt )* ] [ / $( $tail:tt )* ]) => {
-        $crate::Unit!(@replace_inner [ $( $head )* {/} ] [ $( $tail )* ])
-    };
-    (@replace_inner [ $( $head:tt )* ] [ ^ $( $tail:tt )* ]) => {
-        $crate::Unit!(@replace_inner [ $( $head )* {^} ] [ $( $tail )* ])
-    };
-    (@replace_inner [ $( $head:tt )* ] [ $it:tt $( $tail:tt )* ]) => {
-        $crate::Unit!(@replace_inner [ $( $head )* $it ] [ $( $tail )* ])
-    };
-    (@replace_inner [ $( $head:tt )+ ] [] ) => {
-        $crate::Unit![@prepare [] [{*} $( $head )+] ]
-    };
+    // Are you sure you want to go through that hell of declarative macros?
+    // Are you sure you want to see how I've reinvented the wheel (because decl-macroses in rust
+    // are... terrible, when you want to do something not-so-simple)?
+    //
+    // If you don't really need this, please, go away and save save your mind from this horror
+    //
+    // No, really, you still have a chance to turn back.
+    //
+    // Well, I've warned you.
 
 
-    (@prepare [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} -$n:tt $( $tail:tt )*]) => {
-        $crate::Unit![@exp [$( {$p_op} $p_t , )*] [{$op} $t {^} -$n] [ $( $tail )* ] ]
+
+    // ## Basic idea
+    //
+    // This macro should turn `A * B` into `<A as core::ops::Mul<B>>::Output`, `A ^ 2` into
+    // `<A as Mul<A>>::Output`, `A / B` into `<A as Mul<B>>::Output` and so on.
+    //
+    // To achieve this we will scan the input token by token and push them onto "queue".
+    // Then, if we have type, operation (either `*` or `/`) and another type, we will call `ty_op`
+    // macro to do the operation.
+    // Then, if we doesn't have any token left anymore and we have the only token in your queue,
+    // that is the result.
+    //
+    // Let's go on to an example. Let's say we have Unit![A * B / C] and go through it step by step:
+    //
+    // 1. start-branch "creates" the queue and calls the execution sub-command:
+    //    `Unit![@exec []  A * B / C]`
+    //          /^^^^^ ^^\ ^^^^^^^^^ ---- "the rest" - tokens we haven't handled yet
+    // "sub-command"      \
+    //                     * ---- "the queue"
+    //
+    // 2. the @exec sub-command tries to pop a type[^1] from "the rest" and push it onto the queue:
+    //    `Unit![@exec [A] * B / C]`
+    //
+    // 3. the @exec sub-command tries to pop an operation from "the rest" and push it onto the queue:
+    //    `Unit![@exec [A {*}] B / C]`
+    //                    ^^^\
+    //                        * Note: that we can't parse `tt` (`*`, `/`, etc) after `ty` fragment,
+    //                          so we need to somehow escape the operation
+    //
+    // 4. same as 2 - pop type, push type:
+    //    `Unit![@exec [A {*} B] / C]`
+    //
+    // 5. the queue has "type, operation and another type" so the call `ty_op`:
+    //    `Unit![@exec [ty_op!(A {*} B)] / C]`
+    //
+    // 6. `ty_op` does the operation:
+    //    `Unit![@exec [<A as Mul<B>>::Output] / C]`
+    //                        ^^^\
+    //                            * For the sale of simplicity the full paths are omitted
+    //
+    // 7. the same goes further:
+    //    `Unit![@exec [<A as Mul<B>>::Output {/}] C]`
+    //
+    // 8. `Unit![@exec [<A as Mul<B>>::Output {/} C]]`
+    // 9. `Unit![@exec [ty_op!(<A as Mul<B>>::Output {/} C)]]`
+    // 10. `Unit![@exec [<<A as Mul<B>>::Output as Div<C>>::Output]]`
+    // 11. The queue has the only type and "the rest" is empty, yay! We did it! Whe result branch
+    //     returns the type:
+    //     `<<A as Mul<B>>::Output as Div<C>>::Output`
+    //
+    // The things that were intentionally omitted:
+    // - how we parse the types ([^1])
+    // - full paths (like `$crate::Unit` or `core::ops::Mul`)
+    // - some brackets those were added while trying to fix the macro (maybe they are usefull,
+    //   though the don't change much and I hope to remove them)
+    // - the order of expansion - in the real world `Unit` will fully expand firstly and only then
+    //   `ty_op`(s) will expand.
+    //
+    // [^1]: because of macro-by-example limitations we can't do exactly this,
+    //       but we'll cover this later TODO when "later"
+
+
+
+    // `@exec` (execute) sub-command.
+    //
+    // This sub-command does the most of the macro's work what it does is quite well explained in
+    // the "## Basic Idea" paragraph. But here are some additional details.
+
+    // Those branches should be simpler (they are essentially one), but `tt` can go after `ty`,
+    // so instead of:
+    // ```(@exec [ $( ($s_ty:ty) {$s_op:tt} )?] $t:ty $( $rest:tt )* )```
+    // We have those 8 branches. Why 8? Well, there are a lot of ways to write a type in rust:
+    // 1) `Type` or `path::Type`[^2]
+    // 2)  `Type<...>` or `path::Type<...>`
+    // 3) `<Ty as Tr>::Assoc` or `<Ty as Tr<...>>::Assoc`
+    // 4) `macro![...]`
+    // 5) `macro!(...)`
+    // 6) `macro! { ... }`
+    //
+    // [^2]:
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?] $new_ty_name:ident $( :: $new_ty_path:ident )* <$new_ty_gen:ty $(, $new_ty_gens:ty )* $(,)?> $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($new_ty_name $( :: $new_ty_path )* <$new_ty_gen $(, $new_ty_gens )*>)] $( $rest )* ]
     };
-    (@prepare [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} $n:tt $( $tail:tt )*]) => {
-        $crate::Unit![@exp [$( {$p_op} $p_t , )*] [{$op} $t {^} $n] [ $( $tail )* ] ]
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?] <$s:ty as $Trait:ident $( :: $trait_path:ident )* $( <$trait_gen:ty $(, $trait_gens:ty )* $(,)?> )? >::$assoc:ident $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? (<$s as $Trait $( :: $trait_path )* $( <$trait_gen $(, $trait_gens )* $(,)?> )? >::$assoc)] $( $rest )* ]
     };
-    (@prepare [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty $( {$next_op:tt} $( $tail:tt )+ )?]) => {
-        $crate::Unit![@prepare [$( {$p_op} $p_t , )* {$op} $t, ] [ $( {$next_op} $( $tail )+ )?] ]
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?] $macro:ident $( :: $macro_path:ident )* !( $( $args:tt )* ) $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($macro $( :: $macro_path )*!( $( $args )* ))] $( $rest )* ]
+    };
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?] $macro:ident $( :: $macro_path:ident )* ![ $( $args:tt )* ] $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($macro $( :: $macro_path )*![ $( $args )* ])] $( $rest )* ]
+    };
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?] $macro:ident $( :: $macro_path:ident )* !{ $( $args:tt )* } $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($macro $( :: $macro_path )*!{ $( $args )* })] $( $rest )* ]
     };
 
-    (@prepare [ {*} $t:ty, $( {$t_op:tt} $t_t:ty , )* ] []) => {
-        $crate::Unit![@exec $t $( {$t_op} $t_t )* ]
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?]  $new_ty_name:ident $( :: $new_ty_path:ident )* $( * $( $rest:tt )+ )? ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($new_ty_name $( :: $new_ty_path )*) ] $( * $( $rest )+ )? ]
+    };
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?]  $new_ty_name:ident $( :: $new_ty_path:ident )* $( / $( $rest:tt )+ )? ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($new_ty_name $( :: $new_ty_path )*) ] $( / $( $rest )+ )? ]
+    };
+    (@exec [ $( ($s_ty:ty) {$s_op:tt} )?]  $new_ty_name:ident $( :: $new_ty_path:ident )* $( ^ $( $rest:tt )+ )? ) => {
+        $crate::Unit![@exec [ $( ($s_ty) {$s_op} )? ($new_ty_name $( :: $new_ty_path )*) ] $( ^ $( $rest )+ )? ]
     };
 
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{*} $t:ty {^} -$n:tt] [ $( $tail:tt )* ]) => {
-        $crate::Unit![@exp [ $( {$p_op} $p_t , )* ] [{/} $t {^} $n] [ $( $tail )* ] ]
+    (@exec [ ($a_ty:ty) {$op:tt} ($b_ty:ty) ] ^ -$n:tt $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ ($a_ty) {$op} ($crate::Unit![@exp $b_ty {^} -$n]) ] $( $rest )* ]
     };
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{/} $t:ty {^} -$n:tt] [ $( $tail:tt )* ]) => {
-        $crate::Unit![@exp [ $( {$p_op} $p_t , )* ] [{*} $t:ty {^} $n] [ $( $tail )* ] ]
+    (@exec [ ($a_ty:ty) {$op:tt} ($b_ty:ty) ] ^ $n:tt $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ ($a_ty) {$op} ($crate::Unit![@exp $b_ty {^} $n]) ] $( $rest )* ]
     };
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 1] [ $( $tail:tt )* ]) => {
-        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, ] [ $( $tail )* ] ]
+    (@exec [ ($b_ty:ty) ] ^ -$n:tt $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ ($crate::Unit![@exp $b_ty {^} -$n]) ] $( $rest )* ]
     };
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 2] [ $( $tail:tt )* ]) => {
-        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, {$op} $t, ] [ $( $tail )* ] ]
-    };
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 3] [ $( $tail:tt )* ]) => {
-        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, {$op} $t, {$op} $t, ] [ $( $tail )* ] ]
-    };
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} 4] [ $( $tail:tt )* ]) => {
-        $crate::Unit![@prepare [ $( {$p_op} $p_t , )* {$op} $t, {$op} $t, {$op} $t, {$op} $t, ] [ $( $tail )* ] ]
-    };
-    (@exp [ $( {$p_op:tt} $p_t:ty , )* ] [{$op:tt} $t:ty {^} $n:tt] [ $( $tail:tt )* ]) => {
-        compile_error!(concat!("Expected exponent number in bounds [-4; 4], found `", stringify!($n), "`"));
+    (@exec [ ($b_ty:ty) ] ^ $n:tt $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ ($crate::Unit![@exp $b_ty {^} $n]) ] $( $rest )* ]
     };
 
-    (@exec $a:ty {*} $b:ty $( {$next_op:tt} $( $tail:tt )+ )?) => {
-        $crate::Unit![<$a as core::ops::Mul<$b>>::Output $( {$next_op} $( $tail )+ )?]
-    };
-    (@exec $a:ty {/} $b:ty $( {$next_op:tt} $( $tail:tt )+ )?) => {
-        $crate::Unit![<$a as core::ops::Div<$b>>::Output $( {$next_op} $( $tail )+ )?]
+    (@exec [ ($s_ty:ty) ] $new_op:tt $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ ($s_ty) {$new_op} ] $( $rest )* ]
     };
 
-    // End
-    (@exec $res:ty) => {
+    (@exec [ ($a_ty:ty) {*} ($b_ty:ty) ] $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ (<$a_ty as core::ops::Mul<$b_ty>>::Output) ] $( $rest )* ]
+    };
+    (@exec [ ($a_ty:ty) {/} ($b_ty:ty) ] $( $rest:tt )* ) => {
+        $crate::Unit![@exec [ (<$a_ty as core::ops::Div<$b_ty>>::Output) ] $( $rest )* ]
+    };
+    (@exec [ ($a_ty:ty) {$op:tt} ($b_ty:ty) ] $( $rest:tt )* ) => {
+        // TODO: unsupported operation error
+        compile_error!(stringify!($op))
+    };
+
+
+    (@exec [ $res:ty ] ) => {
         $res
+    };
+
+    // END OF `@exec` sub-command
+
+    (@exp $a_ty:ty {^} $( - )? 0) => {
+        $crate::Unit![$a_ty / $a_ty]
+    };
+    (@exp $a_ty:ty {^} -$n:tt) => {
+        $crate::Unit![$crate::Unit![@exp_inner $a_ty {/}^ $n] / $crate::Unit!(@untype $a_ty) / $crate::Unit!(@untype $a_ty)]
+    };
+    (@exp $a_ty:ty {^} $n:tt) => {
+        $crate::Unit![@exp_inner $a_ty {*}^ $n]
+    };
+    (@exp_inner $a_ty:ty {$op:tt}^ 1) => {
+        $a_ty
+    };
+    (@exp_inner $a_ty:ty {$op:tt}^ 2) => {
+        $crate::Unit![$crate::Unit!(@untype $a_ty) $op $crate::Unit!(@untype $a_ty)]
+    };
+    (@exp_inner $a_ty:ty {$op:tt}^ 3) => {
+        $crate::Unit![$crate::Unit!(@untype $a_ty) $op $crate::Unit!(@untype $a_ty) $op $crate::Unit!(@untype $a_ty)]
+    };
+    (@exp_inner $a_ty:ty {$op:tt}^ 4) => {
+        $crate::Unit![$crate::Unit!(@untype $a_ty) $op $crate::Unit!(@untype $a_ty) $op $crate::Unit!(@untype $a_ty) $op $crate::Unit!(@untype $a_ty)]
+    };
+    (@exp_inner $a_ty:ty {$op:tt}^ $n:tt) => {
+        compile_error!(
+            concat!(
+                "Expected exponent number in bounds [-4; 4], found `",
+                stringify!($n),
+                "`. Note: exponents greater that 4 or less than -4 are not currently supported"
+            )
+        )
+    };
+
+    (@untype $( $tts:tt )*) => {
+        $( $tts )*
     };
 
     // Empty call = dimensionless
@@ -125,10 +239,9 @@ bug in the macro. In the second case please open an issue on github. Input: ", s
     // Early start (user of the method should call this branch)
     // Calls @replace sub-macro
     ($( $anything:tt )+) => {
-        $crate::Unit![@replace $($anything)+]
+        $crate::Unit![@exec [] $($anything)+]
     };
 }
-
 
 #[test]
 fn unit() {

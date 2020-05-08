@@ -32,7 +32,7 @@ the crate isn't published on crates.io yet, so to use it spicify it as a git dep
 
 ```toml
 [dependencies]
-# Replace <...> with commit you want to use (it is recomended to use the lates commit)
+# Replace <...> with commit you want to use (it is recomended to use the latest commit)
 typed_phy = { git = "https://github.com/WaffleLapkin/typed_phy", rev = "<...>" }
 ```
 

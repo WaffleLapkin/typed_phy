@@ -71,9 +71,9 @@ where
 /// - `M`, Mass
 /// - `T`, Time
 /// - `I`, Electric current
-/// - `O` Thermodynamic temperature
-/// - `N` Amount of substance
-/// - `J` Luminous intensity
+/// - `O`, Thermodynamic temperature
+/// - `N`, Amount of substance
+/// - `J`, Luminous intensity
 ///
 /// Examples:
 /// - `Dimensions<P1, Z0, Z0, Z0, Z0, Z0, Z0>` is `m¹ * kg⁰ * s⁰ * ...` is `m`

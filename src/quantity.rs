@@ -7,7 +7,6 @@ use core::{
 
 use crate::{
     checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
-    eq::DimensionsEq,
     fraction::{FractionTrait, One},
     from_int::FromUnsigned,
     id::Id,
@@ -88,7 +87,6 @@ impl<S, U> Quantity<S, U> {
     /// ## Examples
     /// ```
     /// # pub mod lib { pub fn square_perimeter(x: u32, y: u32) -> u32 { (x + y) * 2 } }
-    /// // TODO: example that is more sensitive to units
     ///
     /// use typed_phy::{units::Metre, IntExt, Quantity};
     ///
@@ -119,13 +117,10 @@ impl<S, U> Quantity<S, U> {
     where
         F: FnOnce(S) -> S,
     {
-        Self {
-            storage: f(self.storage),
-            ..self
-        }
+        Self::new(f(self.storage))
     }
 
-    /// Sets unit to the same unit. It may seem useless, but it (hopefuly) can
+    /// Sets unit to the same unit. It may seem useless, but it (hopefully) can
     /// help IDE understand right type of the expression (e.g. with type
     /// alias)
     #[inline]
@@ -136,11 +131,51 @@ impl<S, U> Quantity<S, U> {
         self.id_cast()
     }
 
-    pub(crate) fn set_unit_unchecked<U0>(self) -> Quantity<S, U0> {
-        Quantity {
-            storage: self.storage,
-            _unit: PhantomData,
-        }
+    pub(crate) fn set_unit_unchecked<T>(self) -> Quantity<S, T> {
+        Quantity::new(self.storage)
+    }
+}
+
+impl<S, U> Quantity<S, U>
+where
+    U: UnitTrait,
+{
+    /// Set unit.
+    ///
+    /// This function changes only the ratio, this won't change the dimensions.
+    ///
+    /// This function **doesn't** change the underlying value. (So `1000 m`
+    /// becomes `1000 km`, not `1 km`)
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use typed_phy::{prefixes::Kilo, units::Metre, IntExt, Quantity};
+    ///
+    /// let km: Quantity<_, Kilo<Metre>> = 1.km();
+    /// let m: Quantity<_, Metre> = km.set_unit();
+    /// assert_eq!(m, 1.m());
+    /// assert_eq!(2.km().set_unit::<Metre>(), 2.m());
+    /// ```
+    /// ```compile_fail,E0271
+    /// # use typed_phy::{IntExt, units::Second};
+    /// 1.m().set_unit::<Second>();
+    /// ```
+    #[inline]
+    pub fn set_unit<T>(self) -> Quantity<S, T>
+    where
+        T: UnitTrait<Dimensions = U::Dimensions>,
+    {
+        Quantity::new(self.storage)
+    }
+
+    /// Set ratio.
+    ///
+    /// This function **doesn't** change the underlying value. (So `1000 m`
+    /// becomes `1000 km`, not `1 km`).
+    #[inline]
+    pub fn set_ratio<T>(self) -> Quantity<S, Unit<U::Dimensions, T>> {
+        Quantity::new(self.storage)
     }
 }
 
@@ -183,6 +218,31 @@ where
     U::Ratio: FractionTrait,
     S: FromUnsigned + Mul<Output = S> + Div<Output = S>,
 {
+    /// Changes ratio _saving_ the quantity. (So `1000 m` becomes `1 km`, not
+    /// `1000 km`)
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use typed_phy::{Frac, IntExt};
+    ///
+    /// use typenum::{U1, U10};
+    ///
+    /// assert_eq!(10.km().into_ratio::<Frac![U1 / U10]>(), 100_000.dm());
+    /// ```
+    #[inline]
+    pub fn into_ratio<T>(self) -> Quantity<S, Unit<U::Dimensions, T>>
+    where
+        T: FractionTrait,
+    {
+        self.into_unit()
+    }
+
+    /// Convert self to other unit _saving_ the quantity. (So `1000 m` becomes
+    /// `1 km`, not `1000 km`)
+    ///
+    /// Both units must have the same dimensions.
+    ///
     /// ## Examples
     ///
     /// ```
@@ -192,36 +252,36 @@ where
     ///     IntExt,
     /// };
     ///
-    /// assert_eq!(10.km().to::<Deci<Metre>>(), 100_000.dm());
-    /// assert_eq!(100_000.dm().to::<Kilo<Metre>>(), 10.km());
+    /// assert_eq!(10.km().into_unit::<Deci<Metre>>(), 100_000.dm());
+    /// assert_eq!(100_000.dm().into_unit::<Kilo<Metre>>(), 10.km());
     ///
-    /// assert_eq!(3600.s().to::<Hour>(), 1.h());
-    /// assert_eq!(5.h().to::<Minute>(), 300.min_());
+    /// assert_eq!(3600.s().into_unit::<Hour>(), 1.h());
+    /// assert_eq!(5.h().into_unit::<Minute>(), 300.min_());
     /// ```
     #[inline]
-    pub fn to<T>(self) -> Quantity<S, T>
+    pub fn into_unit<T>(self) -> Quantity<S, T>
     where
-        T: UnitTrait,
-        U::Dimensions: DimensionsEq<T::Dimensions>,
+        T: UnitTrait<Dimensions = U::Dimensions>,
     {
         Quantity::new(T::Ratio::div(U::Ratio::mul(self.storage)))
     }
 
+    /// Same as [`into_unit`], but converts to 'base' unit (with ratio = 1)
+    ///
     /// ## Examples
     ///
     /// ```
     /// use typed_phy::IntExt;
     ///
-    /// assert_eq!(10.km().to_base(), 10_000.m());
-    /// assert_eq!(10.dm().to_base(), 1.m());
-    ///
-    /// assert_eq!(10.min_().to_base(), 600.s());
+    /// assert_eq!(10.km().into_base(), 10_000.m());
+    /// assert_eq!(10.dm().into_base(), 1.m());
+    /// assert_eq!(10.h().into_base(), 36000.s());
+    /// assert_eq!(10.min_().into_base(), 600.s());
+    /// assert_eq!((100.m() * 3.km()).into_base(), 300_000.sqm());
     /// ```
     #[inline]
-    #[allow(clippy::wrong_self_convention)] // TODO: better name
-    #[allow(clippy::type_complexity)]
-    pub fn to_base(self) -> Quantity<S, Unit<U::Dimensions, One>> {
-        self.to()
+    pub fn into_base(self) -> Quantity<S, Unit<U::Dimensions, One>> {
+        self.into_unit()
     }
 }
 
@@ -477,7 +537,6 @@ where
     }
 }
 
-// We need to use handwritten impl to prevent unnecessary bounds on generics
 impl<S, U> Debug for Quantity<S, U>
 where
     S: Debug,

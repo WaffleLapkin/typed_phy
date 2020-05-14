@@ -169,6 +169,9 @@ macro_rules! Unit {
     // 4) `macro![...]` or `path::macro![...]`
     // 5) `macro! { ... }` or `path::macro! { ... }`
     // 6..8) `Type` or `path::Type`
+    //
+    // Note: this won't parse all types (e.g. tuples `(A, B)` and arrays `[T; N]`...) but it's ok
+    //       for our purpose
     (/* 1 */ @exec [ $acc:ty ] [ $( $op:tt $prev:ty )? ] $x_op:tt $new_ty_name:ident $( :: $new_ty_path:ident )* <$new_ty_gen:ty $(, $new_ty_gens:ty )* $(,)?> $( $rest:tt )* ) => {
         $crate::Unit![@exec [ $crate::Unit![@ty_op $acc $( {$op} $prev )?] ] [$x_op $new_ty_name $( :: $new_ty_path )* <$new_ty_gen $(, $new_ty_gens )*> ] $( $rest )* ]
     };

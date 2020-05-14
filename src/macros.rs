@@ -264,6 +264,18 @@ impl<T> core::ops::Mul<T> for NoOpMul {
     }
 }
 
+// Only used in `Unit![X ^ -n]`
+impl<T> core::ops::Div<T> for NoOpMul
+where
+    crate::units::Dimensionless: core::ops::Div<T>,
+{
+    type Output = <crate::units::Dimensionless as core::ops::Div<T>>::Output;
+
+    fn div(self, rhs: T) -> Self::Output {
+        crate::units::Dimensionless::new() / rhs
+    }
+}
+
 #[test]
 fn unit() {
     macro_rules! id {

@@ -44,7 +44,7 @@ pub type Pascal = Unit![KiloGram / Metre / Second ^ 2];
 /// Joule. `J`
 pub type Joule = Unit![KiloGram * Metre ^ 2 / Second ^ 2];
 /// Watt. `W`
-pub type Watt = Unit![KiloGram * Metre ^ 2 / Second ^ 3];
+pub type Watt = Unit![KiloGram * Metre ^ 2 * Second ^ -3];
 // TODO
 
 // Coherent derived units

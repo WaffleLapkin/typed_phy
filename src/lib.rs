@@ -97,9 +97,6 @@ pub use self::{
     unit::{Unit, UnitTrait},
 };
 
-/// Invariant over `T` and doesn't own it.
-pub(crate) type TypeOnly<T> = core::marker::PhantomData<fn(T) -> T>;
-
 /// UI tests to see weird type errors.
 ///
 /// Those test may seem useless, but I want to see errors that user can

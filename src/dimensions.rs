@@ -1,12 +1,9 @@
 use core::{
     fmt,
-    marker::PhantomData,
     ops::{Add, Div, Mul, Sub},
 };
 
 use typenum::Integer;
-
-use crate::TypeOnly;
 
 /// Trait implemented for [`Dimensions`].
 /// Mostly needed to simplify bound and write
@@ -85,19 +82,13 @@ where
 ///
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
 #[allow(clippy::type_complexity)]
-pub struct Dimensions<L, M, T, I, O, N, J>(TypeOnly<(L, M, T, I, O, N, J)>);
-
-impl<L, M, T, I, O, N, J> Dimensions<L, M, T, I, O, N, J> {
-    /// Workaround for creating struct in const fn.
-    /// See https://github.com/rust-lang/rust/issues/69459
-    const NEW: Self = Self(PhantomData);
-}
+pub struct Dimensions<L, M, T, I, O, N, J>(phantasm::Invariant<(L, M, T, I, O, N, J)>);
 
 impl<L, M, T, I, O, N, J> Dimensions<L, M, T, I, O, N, J> {
     /// Create new dimensions
     #[inline]
     pub const fn new() -> Self {
-        Self::NEW
+        Self(phantasm::Invariant)
     }
 }
 

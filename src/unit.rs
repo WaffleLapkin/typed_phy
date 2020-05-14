@@ -1,6 +1,5 @@
 use core::{
     fmt::{self, Debug},
-    marker::PhantomData,
     ops::{Div, Mul},
 };
 
@@ -8,7 +7,7 @@ use crate::{
     fraction::{FractionTrait, One},
     rt::{RtDimensions, RtFraction, RtUnit, UnitRtExt},
     units::*,
-    DimensionsTrait, TypeOnly,
+    DimensionsTrait,
 };
 
 /// Trait implemented for [`Unit`].
@@ -62,19 +61,13 @@ impl<D: DimensionsTrait, R: FractionTrait> UnitTrait for Unit<D, R> {
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
 /// [`Dimensions`]: crate::Dimensions
 /// [`Fraction`]: crate::Fraction
-pub struct Unit<D, R = One>(TypeOnly<(D, R)>);
-
-impl<D, R> Unit<D, R> {
-    /// Workaround for creating struct in const fn.
-    /// See https://github.com/rust-lang/rust/issues/69459
-    const NEW: Self = Self(PhantomData);
-}
+pub struct Unit<D, R = One>(phantasm::Invariant<(D, R)>);
 
 impl<D, R> Unit<D, R> {
     /// Create new unit
     #[inline]
     pub const fn new() -> Self {
-        Self::NEW
+        Self(phantasm::Invariant)
     }
 }
 

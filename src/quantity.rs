@@ -150,7 +150,7 @@ where
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::{IntExt, units::Metre, prefixes::Kilo, Quantity};
+    /// use typed_phy::{prefixes::Kilo, units::Metre, IntExt, Quantity};
     ///
     /// let km: Quantity<_, Kilo<Metre>> = 1.km();
     /// let m: Quantity<_, Metre> = km.set_unit();
@@ -224,7 +224,7 @@ where
     /// ## Examples
     ///
     /// ```
-    /// use typed_phy::{IntExt, Frac};
+    /// use typed_phy::{Frac, IntExt};
     ///
     /// use typenum::{U1, U10};
     ///

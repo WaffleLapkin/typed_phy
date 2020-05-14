@@ -53,6 +53,8 @@
 #![cfg_attr(not(test), no_std)]
 // For running tests from readme
 #![cfg_attr(all(doctest, feature = "nightly"), feature(external_doc))]
+//explain TODO
+#![cfg_attr(feature = "nightly", feature(doc_cfg))]
 // I hate missing docs
 #![deny(missing_docs)]
 // And I like inline
@@ -60,6 +62,8 @@
 
 #[macro_use]
 mod macros;
+pub use macros::NoOpMul;
+
 mod rt;
 
 pub mod checked;

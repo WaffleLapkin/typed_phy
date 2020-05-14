@@ -585,3 +585,17 @@ mod tests {
         );
     }
 }
+
+impl<S, U> core::iter::Sum for Quantity<S, U>
+where
+    S: Add<Output = S>,
+    S: Default,
+{
+    #[inline]
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Self>,
+    {
+        iter.fold(Self::default(), Self::add)
+    }
+}

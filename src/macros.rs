@@ -259,6 +259,7 @@ pub enum NoOpMul {}
 impl<T> core::ops::Mul<T> for NoOpMul {
     type Output = T;
 
+    #[inline]
     fn mul(self, rhs: T) -> Self::Output {
         rhs
     }
@@ -271,6 +272,7 @@ where
 {
     type Output = <crate::units::Dimensionless as core::ops::Div<T>>::Output;
 
+    #[inline]
     fn div(self, rhs: T) -> Self::Output {
         crate::units::Dimensionless::new() / rhs
     }
@@ -279,7 +281,9 @@ where
 #[test]
 fn unit() {
     macro_rules! id {
-        ($t:ty) => { $t };
+        ($t:ty) => {
+            $t
+        };
     }
 
     use core::ops::Mul;
@@ -313,10 +317,7 @@ fn unit() {
         / crate::prefixes::Kilo<Metre> ^ 2
     ];
 
-    typenum::assert_type_eq!(
-        <Simple as crate::simplify::Simplify>::Output,
-        Dimensionless
-    );
+    typenum::assert_type_eq!(<Simple as crate::simplify::Simplify>::Output, Dimensionless);
     typenum::assert_type_eq!(Unit![], Dimensionless);
 
     // was broken in first version of the Unit! macro with types support

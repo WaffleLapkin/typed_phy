@@ -193,28 +193,27 @@ where
                 numerator = numerator,
                 divisor = divisor,
             ))
+        } else if numerator == 0 {
+            f.write_char('0')
+        } else if divisor == 1 {
+            f.write_fmt(format_args!("{}", numerator))
+        } else if divisor == numerator {
+            f.write_char('1')
         } else {
-            if numerator == 0 {
-                f.write_char('0')
-            } else if divisor == 1 {
-                f.write_fmt(format_args!("{}", numerator))
-            } else if divisor == numerator {
-                f.write_char('1')
-            } else {
-                // TODO: use gcd here?...
-                f.write_fmt(format_args!(
-                    "{numerator}/{divisor}",
-                    numerator = numerator,
-                    divisor = divisor,
-                ))
-            }
+            // TODO: use gcd here?...
+            f.write_fmt(format_args!(
+                "{numerator}/{divisor}",
+                numerator = numerator,
+                divisor = divisor,
+            ))
         }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use core::ops::Mul;
-    use typenum::{U0, U1, U3, U10, U100, U1000, U36};
+    use typenum::{U0, U1, U10, U100, U1000, U3, U36};
 
     type U3600 = <U36 as Mul<U100>>::Output;
 

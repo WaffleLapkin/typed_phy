@@ -71,8 +71,6 @@ pub mod checked;
 pub mod fraction;
 /// Trait for integers
 pub mod from_int;
-/// Type-level gcd (greatest common divisor)
-pub mod gcd;
 /// Unit prefixes
 pub mod prefixes;
 /// Simplify fractions

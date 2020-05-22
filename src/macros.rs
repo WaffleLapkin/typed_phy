@@ -1,3 +1,7 @@
+use typenum::Quot;
+
+use crate::units::Dimensionless;
+
 /// Declare (?) [`Unit`] _type_ depending on other units.
 ///
 /// ## Examples
@@ -271,13 +275,13 @@ impl<T> core::ops::Mul<T> for NoOpMul {
 // Only used in `Unit![X ^ -n]`
 impl<T> core::ops::Div<T> for NoOpMul
 where
-    crate::units::Dimensionless: core::ops::Div<T>,
+    Dimensionless: core::ops::Div<T>,
 {
-    type Output = <crate::units::Dimensionless as core::ops::Div<T>>::Output;
+    type Output = Quot<Dimensionless, T>;
 
     #[inline]
     fn div(self, rhs: T) -> Self::Output {
-        crate::units::Dimensionless::new() / rhs
+        Dimensionless::new() / rhs
     }
 }
 

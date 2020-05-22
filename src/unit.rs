@@ -9,6 +9,7 @@ use crate::{
     units::*,
     DimensionsTrait,
 };
+use typenum::{Prod, Quot};
 
 /// Trait implemented for [`Unit`].
 /// Mostly needed to simplify bound and write
@@ -273,8 +274,7 @@ where
     D: Mul<U::Dimensions>,
     R: Mul<U::Ratio>,
 {
-    #[allow(clippy::type_complexity)]
-    type Output = Unit<<D as Mul<U::Dimensions>>::Output, <R as Mul<U::Ratio>>::Output>;
+    type Output = Unit<Prod<D, U::Dimensions>, Prod<R, U::Ratio>>;
 
     #[inline]
     fn mul(self, _rhs: U) -> Self::Output {
@@ -293,9 +293,7 @@ where
     D: Div<U::Dimensions>,
     R: Div<U::Ratio>,
 {
-    // Yeah, it's very complex, but I can't do anything with it :(
-    #[allow(clippy::type_complexity)]
-    type Output = Unit<<D as Div<U::Dimensions>>::Output, <R as Div<U::Ratio>>::Output>;
+    type Output = Unit<Quot<D, U::Dimensions>, Quot<R, U::Ratio>>;
 
     #[inline]
     fn div(self, _rhs: U) -> Self::Output {

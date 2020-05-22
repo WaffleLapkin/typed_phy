@@ -3,7 +3,7 @@ use core::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use typenum::Integer;
+use typenum::{Diff, Integer, Sum};
 
 /// Trait implemented for [`Dimensions`].
 /// Mostly needed to simplify bound and write
@@ -177,13 +177,13 @@ where
 {
     #[allow(clippy::type_complexity)]
     type Output = Dimensions<
-        <L as Add<U::Length>>::Output,
-        <M as Add<U::Mass>>::Output,
-        <T as Add<U::Time>>::Output,
-        <I as Add<U::ElectricCurrent>>::Output,
-        <O as Add<U::ThermodynamicTemperature>>::Output,
-        <N as Add<U::AmountOfSubstance>>::Output,
-        <J as Add<U::LuminousIntensity>>::Output,
+        Sum<L, U::Length>,
+        Sum<M, U::Mass>,
+        Sum<T, U::Time>,
+        Sum<I, U::ElectricCurrent>,
+        Sum<O, U::ThermodynamicTemperature>,
+        Sum<N, U::AmountOfSubstance>,
+        Sum<J, U::LuminousIntensity>,
     >;
 
     #[inline]
@@ -211,13 +211,13 @@ where
     // Yeah, it's very complex, but I can't do anything with it :(
     #[allow(clippy::type_complexity)]
     type Output = Dimensions<
-        <L as Sub<U::Length>>::Output,
-        <M as Sub<U::Mass>>::Output,
-        <T as Sub<U::Time>>::Output,
-        <I as Sub<U::ElectricCurrent>>::Output,
-        <O as Sub<U::ThermodynamicTemperature>>::Output,
-        <N as Sub<U::AmountOfSubstance>>::Output,
-        <J as Sub<U::LuminousIntensity>>::Output,
+        Diff<L, U::Length>,
+        Diff<M, U::Mass>,
+        Diff<T, U::Time>,
+        Diff<I, U::ElectricCurrent>,
+        Diff<O, U::ThermodynamicTemperature>,
+        Diff<N, U::AmountOfSubstance>,
+        Diff<J, U::LuminousIntensity>,
     >;
 
     #[inline]

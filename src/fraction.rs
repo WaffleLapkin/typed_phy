@@ -4,7 +4,7 @@ use core::{
     ops::{Div, Mul},
 };
 
-use typenum::{UInt, Unsigned, U0, U1};
+use typenum::{Prod, UInt, Unsigned, U0, U1};
 
 use crate::{eq::FractionEq, from_int::FromUnsigned};
 
@@ -88,7 +88,7 @@ impl<N, D, X, B> Div<UInt<X, B>> for Fraction<N, D>
 where
     D: Mul<UInt<X, B>>,
 {
-    type Output = Fraction<N, <D as Mul<UInt<X, B>>>::Output>;
+    type Output = Fraction<N, Prod<D, UInt<X, B>>>;
 
     #[inline]
     fn div(self, _rhs: UInt<X, B>) -> Self::Output {
@@ -101,23 +101,10 @@ impl<N, D, X, B> Mul<UInt<X, B>> for Fraction<N, D>
 where
     N: Mul<UInt<X, B>>,
 {
-    type Output = Fraction<<N as Mul<UInt<X, B>>>::Output, D>;
+    type Output = Fraction<Prod<N, UInt<X, B>>, D>;
 
     #[inline]
     fn mul(self, _rhs: UInt<X, B>) -> Self::Output {
-        Self::Output::new()
-    }
-}
-
-/// `(n/d) / x = n/(d * x)`
-impl<N, D> Div<U0> for Fraction<N, D>
-where
-    D: Mul<U0>,
-{
-    type Output = Fraction<N, <D as Mul<U0>>::Output>;
-
-    #[inline]
-    fn div(self, _rhs: U0) -> Self::Output {
         Self::Output::new()
     }
 }
@@ -127,7 +114,7 @@ impl<N, D> Mul<U0> for Fraction<N, D>
 where
     N: Mul<U0>,
 {
-    type Output = Fraction<<N as Mul<U0>>::Output, D>;
+    type Output = Fraction<Prod<N, U0>, D>;
 
     #[inline]
     fn mul(self, _rhs: U0) -> Self::Output {
@@ -141,7 +128,7 @@ where
     N: Mul<B>,
     D: Mul<A>,
 {
-    type Output = Fraction<<N as Mul<B>>::Output, <D as Mul<A>>::Output>;
+    type Output = Fraction<Prod<N, B>, Prod<D, A>>;
 
     #[inline]
     fn div(self, _rhs: Fraction<A, B>) -> Self::Output {
@@ -155,7 +142,7 @@ where
     N: Mul<A>,
     D: Mul<B>,
 {
-    type Output = Fraction<<N as Mul<A>>::Output, <D as Mul<B>>::Output>;
+    type Output = Fraction<Prod<N, A>, Prod<D, B>>;
 
     #[inline]
     fn mul(self, _rhs: Fraction<A, B>) -> Self::Output {

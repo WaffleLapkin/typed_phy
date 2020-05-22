@@ -1,5 +1,5 @@
 use core::{
-    fmt,
+    fmt::{self, Write},
     marker::PhantomData,
     ops::{Div, Mul},
 };
@@ -184,18 +184,37 @@ where
 {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "{numerator} / {divisor}",
-            numerator = N::U64,
-            divisor = D::U64,
-        ))
-    }
+        let numerator = N::U64;
+        let divisor = D::U64;
+
+        if !f.alternate() {
+            f.write_fmt(format_args!(
+                "{numerator}/{divisor}",
+                numerator = numerator,
+                divisor = divisor,
+            ))
+        } else {
+            if numerator == 0 {
+                f.write_char('0')
+            } else if divisor == 1 {
+                f.write_fmt(format_args!("{}", numerator))
+            } else if divisor == numerator {
+                f.write_char('1')
+            } else {
+                // TODO: use gcd here?...
+                f.write_fmt(format_args!(
+                    "{numerator}/{divisor}",
+                    numerator = numerator,
+                    divisor = divisor,
+                ))
+            }
+        }
 }
 
 #[cfg(test)]
 mod tests {
     use core::ops::Mul;
-    use typenum::{U1, U100, U1000, U36};
+    use typenum::{U0, U1, U3, U10, U100, U1000, U36};
 
     type U3600 = <U36 as Mul<U100>>::Output;
 
@@ -211,8 +230,19 @@ mod tests {
 
     #[test]
     fn display() {
-        assert_eq!(format!("{}", <Frac![U1]>::new()), "1 / 1");
-        assert_eq!(format!("{}", <Frac![U1 / U1]>::new()), "1 / 1");
-        assert_eq!(format!("{}", <Frac![U1000 / U3600]>::new()), "1000 / 3600");
+        assert_eq!(format!("{}", <Frac![U10]>::new()), "10/1");
+        assert_eq!(format!("{}", <Frac![U100 / U1]>::new()), "100/1");
+        assert_eq!(format!("{}", <Frac![U3 / U3]>::new()), "3/3");
+        assert_eq!(format!("{}", <Frac![U0 / U3]>::new()), "0/3");
+        assert_eq!(format!("{}", <Frac![U1000 / U3600]>::new()), "1000/3600");
+    }
+
+    #[test]
+    fn cooler_display() {
+        assert_eq!(format!("{:#}", <Frac![U10]>::new()), "10");
+        assert_eq!(format!("{:#}", <Frac![U100 / U1]>::new()), "100");
+        assert_eq!(format!("{:#}", <Frac![U3 / U3]>::new()), "1");
+        assert_eq!(format!("{:#}", <Frac![U0 / U3]>::new()), "0");
+        assert_eq!(format!("{:#}", <Frac![U1000 / U3600]>::new()), "1000/3600");
     }
 }

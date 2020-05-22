@@ -1,6 +1,6 @@
 use core::ops::{Div, Mul};
 
-use typenum::{U1, U10, U12, U15, U18, U2, U21, U24, U3, U6, U9, Exp};
+use typenum::{Exp, U1, U10, U12, U15, U18, U2, U21, U24, U3, U6, U9};
 
 use crate::{Unit, UnitTrait};
 

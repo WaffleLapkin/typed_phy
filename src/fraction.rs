@@ -4,7 +4,7 @@ use core::{
     ops::{Div, Mul},
 };
 
-use typenum::{UInt, Unsigned, U0, U1, Prod};
+use typenum::{Prod, UInt, Unsigned, U0, U1};
 
 use crate::{eq::FractionEq, from_int::FromUnsigned};
 

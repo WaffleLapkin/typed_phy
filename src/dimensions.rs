@@ -3,7 +3,7 @@ use core::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use typenum::{Integer, Diff, Sum};
+use typenum::{Diff, Integer, Sum};
 
 /// Trait implemented for [`Dimensions`].
 /// Mostly needed to simplify bound and write

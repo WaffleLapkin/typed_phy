@@ -29,10 +29,7 @@ where
     D: Div<<N as Gcd<D>>::Output>,
 {
     #[allow(clippy::type_complexity)]
-    type Output = Fraction<
-        Quot<N, <N as Gcd<D>>::Output>,
-        Quot<D, <N as Gcd<D>>::Output>,
-    >;
+    type Output = Fraction<Quot<N, <N as Gcd<D>>::Output>, Quot<D, <N as Gcd<D>>::Output>>;
 
     #[inline]
     fn simplify(self) -> Self::Output {

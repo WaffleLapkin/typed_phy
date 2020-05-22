@@ -14,6 +14,7 @@ use crate::{
     units::Dimensionless,
     Unit,
 };
+use typenum::{Prod, Quot};
 
 /// Base type of the whole lib
 ///
@@ -346,7 +347,7 @@ where
     U0: UnitTrait + Mul<U1>,
     U1: UnitTrait,
 {
-    type Output = Quantity<S, <U0 as Mul<U1>>::Output>;
+    type Output = Quantity<S, Prod<U0, U1>>;
 
     #[inline]
     fn mul(self, rhs: Quantity<S, U1>) -> Self::Output {
@@ -367,7 +368,7 @@ where
     U0: UnitTrait + Div<U1>,
     U1: UnitTrait,
 {
-    type Output = Quantity<S, <U0 as Div<U1>>::Output>;
+    type Output = Quantity<S, Quot<U0, U1>>;
 
     #[inline]
     fn div(self, rhs: Quantity<S, U1>) -> Self::Output {

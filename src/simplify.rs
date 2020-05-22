@@ -1,6 +1,7 @@
 use core::ops::Div;
 
 use crate::{fraction::Fraction, gcd::Gcd, Quantity, Unit};
+use typenum::Quot;
 
 /// Simplify fraction.
 ///
@@ -29,8 +30,8 @@ where
 {
     #[allow(clippy::type_complexity)]
     type Output = Fraction<
-        <N as Div<<N as Gcd<D>>::Output>>::Output,
-        <D as Div<<N as Gcd<D>>::Output>>::Output,
+        Quot<N, <N as Gcd<D>>::Output>,
+        Quot<D, <N as Gcd<D>>::Output>,
     >;
 
     #[inline]

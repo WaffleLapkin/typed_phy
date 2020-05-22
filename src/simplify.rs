@@ -1,7 +1,8 @@
 use core::ops::Div;
 
-use crate::{fraction::Fraction, gcd::Gcd, Quantity, Unit};
-use typenum::Quot;
+use typenum::{Quot, Gcd, Gcf};
+
+use crate::{fraction::Fraction, Quantity, Unit};
 
 /// Simplify fraction.
 ///
@@ -25,11 +26,10 @@ pub trait Simplify {
 impl<N, D> Simplify for Fraction<N, D>
 where
     N: Gcd<D>,
-    N: Div<<N as Gcd<D>>::Output>,
-    D: Div<<N as Gcd<D>>::Output>,
+    N: Div<Gcf<N, D>>,
+    D: Div<Gcf<N, D>>,
 {
-    #[allow(clippy::type_complexity)]
-    type Output = Fraction<Quot<N, <N as Gcd<D>>::Output>, Quot<D, <N as Gcd<D>>::Output>>;
+    type Output = Fraction<Quot<N, Gcf<N, D>>, Quot<D, Gcf<N, D>>>;
 
     #[inline]
     fn simplify(self) -> Self::Output {

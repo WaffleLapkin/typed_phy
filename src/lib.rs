@@ -9,6 +9,13 @@
 //! WIP WIP wip WiP wIp Work in progress Wip wORk In PrOgReSss wIp work in
 //! progress
 //!
+//! ## cargo features
+//!
+//! - `deser` - enables support of (de)serializing [`Quantity`] via [`serde`]
+//!
+//! [`Quantity`]: crate::Quantity
+//! [`serde`]: https://docs.rs/serde
+//!
 //! ## Project goals
 //!
 //! - **Correctness** - don't allow wrong things like adding metres to watts

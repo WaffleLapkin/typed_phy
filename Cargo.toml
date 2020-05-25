@@ -9,10 +9,17 @@ edition = "2018"
 [dependencies]
 typenum = "1.11"
 phantasm = "0.1.1"
+serde = { version = "1.0", optional = true, features = ["derive"], default-features = false }
 
 [dev-dependencies]
 trybuild = "1.0.21"
+serde_test = "1.0"
 
 [features]
+# Default features is a strange thing - to remove them _all_ crates in the dep tree
+# those depend on the crate must disable them...
+default = []
 # Curetly used only for readme doc tests
 nightly = []
+# Enables (de)serialization through `serde` (derives `(De)Serialize` traits on `Quantity`)
+deser = ["serde"]

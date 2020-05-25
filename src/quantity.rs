@@ -49,8 +49,13 @@ use typenum::{Prod, Quot};
 /// let mult = x * y;
 /// assert_eq!(mult, 200.quantity::<SquareMetre>());
 /// ```
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "deser", serde(transparent))]
 pub struct Quantity<S, U> {
     storage: S,
+    // TODO: think a bit more about the serialization. Currently only the Inner storage is
+    //       (de)serialized, but maybe we should also serialize the exponents?...
+    #[cfg_attr(feature = "deser", serde(skip))]
     _unit: PhantomData<U>,
 }
 
@@ -643,6 +648,13 @@ mod tests {
             Unit::<Dimensions<P1, N2, P1, N1, N1, P1, P1>, Frac![U15 / U71]>,
             "42 m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 15/71)",
         );
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "deser"), ignore)]
+    fn serde() {
+        #[cfg(feature = "deser")] // won't compile without (De)Serialize traits derived
+        serde_test::assert_tokens(&(10.m() / 5.s()), &[serde_test::Token::I32(2)])
     }
 }
 

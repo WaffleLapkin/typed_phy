@@ -14,7 +14,9 @@
 //! - `deser` - enables support of (de)serializing [`Quantity`] via [`serde`]
 //! - `nightly` - enables features those require nightly compiler. Currently
 //!   those are:
-//!   - [`impl core::iter::Step for Quantity`](crate::Quantity#impl-Step)
+//!   - ~~[`impl core::iter::Step for Quantity`](crate::Quantity#impl-Step)~~
+//!     (TODO: this implementation was removed because of a breaking change in
+//!     std, later on, we will need to implement this again)
 //!   - that's all :)
 //!
 //! [`Quantity`]: crate::Quantity

@@ -6,8 +6,8 @@ use core::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
 
-#[cfg(feature = "nightly")]
-use core::iter::Step;
+// #[cfg(feature = "nightly")]
+// use core::iter::Step;
 
 use typenum::{Prod, Quot};
 
@@ -812,41 +812,41 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
-impl<S, U> Step for Quantity<S, U>
-where
-    S: Step,
-{
-    #[inline]
-    fn steps_between(start: &Self, end: &Self) -> Option<usize> {
-        <_>::steps_between(&start.storage, &end.storage)
-    }
-
-    #[inline]
-    fn replace_one(&mut self) -> Self {
-        Self::new(self.storage.replace_one())
-    }
-
-    #[inline]
-    fn replace_zero(&mut self) -> Self {
-        Self::new(self.storage.replace_zero())
-    }
-
-    #[inline]
-    fn add_one(&self) -> Self {
-        Self::new(self.storage.add_one())
-    }
-
-    #[inline]
-    fn sub_one(&self) -> Self {
-        Self::new(self.storage.sub_one())
-    }
-
-    #[inline]
-    fn add_usize(&self, n: usize) -> Option<Self> {
-        self.storage.add_usize(n).map(Self::new)
-    }
-}
+// #[cfg(feature = "nightly")]
+// impl<S, U> Step for Quantity<S, U>
+// where
+//     S: Step,
+// {
+//     #[inline]
+//     fn steps_between(start: &Self, end: &Self) -> Option<usize> {
+//         <_>::steps_between(&start.storage, &end.storage)
+//     }
+//
+//     #[inline]
+//     fn replace_one(&mut self) -> Self {
+//         Self::new(self.storage.replace_one())
+//     }
+//
+//     #[inline]
+//     fn replace_zero(&mut self) -> Self {
+//         Self::new(self.storage.replace_zero())
+//     }
+//
+//     #[inline]
+//     fn add_one(&self) -> Self {
+//         Self::new(self.storage.add_one())
+//     }
+//
+//     #[inline]
+//     fn sub_one(&self) -> Self {
+//         Self::new(self.storage.sub_one())
+//     }
+//
+//     #[inline]
+//     fn add_usize(&self, n: usize) -> Option<Self> {
+//         self.storage.add_usize(n).map(Self::new)
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

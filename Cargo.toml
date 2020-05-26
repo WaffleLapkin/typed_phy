@@ -19,7 +19,7 @@ serde_test = "1.0"
 # Default features is a strange thing - to remove them _all_ crates in the dep tree
 # those depend on the crate must disable them...
 default = []
-# Curetly used only for readme doc tests
+# Curetly used only for readme doc tests & `impl Step for Quantity`
 nightly = []
 # Enables (de)serialization through `serde` (derives `(De)Serialize` traits on `Quantity`)
 deser = ["serde"]

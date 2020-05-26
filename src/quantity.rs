@@ -1,9 +1,15 @@
 use core::{
     cmp::Ordering,
-    fmt::{self, Debug, Display},
+    fmt::{self, Binary, Debug, Display, LowerExp, LowerHex, Octal, UpperExp, UpperHex},
+    iter::Sum,
     marker::PhantomData,
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
+
+#[cfg(feature = "nightly")]
+use core::iter::Step;
+
+use typenum::{Prod, Quot};
 
 use crate::{
     checked::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
@@ -14,7 +20,6 @@ use crate::{
     units::Dimensionless,
     Unit,
 };
-use typenum::{Prod, Quot};
 
 /// Base type of the whole lib
 ///
@@ -51,6 +56,7 @@ use typenum::{Prod, Quot};
 /// ```
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
+#[derive(Hash)]
 pub struct Quantity<S, U> {
     storage: S,
     // TODO: think a bit more about the serialization. Currently only the Inner storage is
@@ -535,11 +541,87 @@ where
 /// ```
 impl<S, U> CheckedDiv<S> for Quantity<S, U>
 where
-    S: CheckedDiv<S, Output = S>,
+    S: CheckedDiv<Output = S>,
 {
     #[inline]
     fn checked_div(self, rhs: S) -> Option<Self::Output> {
         self.storage.checked_div(rhs).map(Self::new)
+    }
+}
+
+impl<S, U> AddAssign for Quantity<S, U>
+where
+    S: AddAssign,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: Quantity<S, U>) {
+        self.storage.add_assign(rhs.storage);
+    }
+}
+
+impl<S, U> SubAssign for Quantity<S, U>
+where
+    S: SubAssign,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: Quantity<S, U>) {
+        self.storage.sub_assign(rhs.storage);
+    }
+}
+
+impl<S, U> MulAssign<S> for Quantity<S, U>
+where
+    S: MulAssign,
+{
+    #[inline]
+    fn mul_assign(&mut self, rhs: S) {
+        self.storage.mul_assign(rhs);
+    }
+}
+
+impl<S, U> DivAssign<S> for Quantity<S, U>
+where
+    S: DivAssign,
+{
+    #[inline]
+    fn div_assign(&mut self, rhs: S) {
+        self.storage.div_assign(rhs);
+    }
+}
+
+impl<S, U> Rem<S> for Quantity<S, U>
+where
+    S: Rem,
+{
+    type Output = Quantity<S::Output, U>;
+
+    #[inline]
+    fn rem(self, rhs: S) -> Self::Output {
+        Self::Output::new(self.storage % rhs)
+    }
+}
+
+impl<S, U> RemAssign<S> for Quantity<S, U>
+where
+    S: RemAssign,
+{
+    #[inline]
+    fn rem_assign(&mut self, rhs: S) {
+        self.storage.rem_assign(rhs)
+    }
+}
+
+impl<S, U0, U1> Rem<Quantity<S, U1>> for Quantity<S, U0>
+where
+    S: Rem,
+    U0: UnitTrait + Div<U1>,
+    U1: UnitTrait,
+{
+    type Output = Quantity<S::Output, Quot<U0, U1>>;
+
+    #[inline]
+    fn rem(self, rhs: Quantity<S, U1>) -> Self::Output {
+        Self::Output::new(self.storage % rhs.storage)
     }
 }
 
@@ -567,6 +649,97 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!(
             "{value} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> Binary for Quantity<S, U>
+where
+    S: Binary,
+    U: Display + Default, /* Not sure about this, but I don't quite see
+                           * the reasons to implement Binary for Unit anyway */
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value:b} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> LowerExp for Quantity<S, U>
+where
+    S: LowerExp,
+    U: Display + Default,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value:e} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> LowerHex for Quantity<S, U>
+where
+    S: LowerHex,
+    U: Display + Default,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value:x} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> Octal for Quantity<S, U>
+where
+    S: Octal,
+    U: Display + Default,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value:o} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> UpperExp for Quantity<S, U>
+where
+    S: UpperExp,
+    U: Display + Default,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value:E} {unit}",
+            value = self.storage,
+            unit = U::default(),
+        ))
+    }
+}
+
+impl<S, U> UpperHex for Quantity<S, U>
+where
+    S: UpperHex,
+    U: Display + Default,
+{
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{value:X} {unit}",
             value = self.storage,
             unit = U::default(),
         ))
@@ -617,6 +790,58 @@ where
     }
 }
 
+// TODO: `From` impl to change ratio
+impl<S, U> From<S> for Quantity<S, U> {
+    #[inline]
+    fn from(i: S) -> Self {
+        Self::new(i)
+    }
+}
+
+impl<S, U> Sum for Quantity<S, U>
+where
+    S: Add<Output = S>,
+    S: Default,
+{
+    #[inline]
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Self>,
+    {
+        iter.fold(Self::default(), Self::add)
+    }
+}
+
+#[cfg(feature = "nightly")]
+impl<S, U> Step for Quantity<S, U>
+where
+    S: Step,
+{
+    fn steps_between(start: &Self, end: &Self) -> Option<usize> {
+        <_>::steps_between(&start.storage, &end.storage)
+    }
+
+    fn replace_one(&mut self) -> Self {
+        Self::new(self.storage.replace_one())
+    }
+
+    fn replace_zero(&mut self) -> Self {
+        Self::new(self.storage.replace_zero())
+    }
+
+    fn add_one(&self) -> Self {
+        Self::new(self.storage.add_one())
+    }
+
+    fn sub_one(&self) -> Self {
+        Self::new(self.storage.sub_one())
+    }
+
+    fn add_usize(&self, n: usize) -> Option<Self> {
+        self.storage.add_usize(n).map(Self::new)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use typenum::{N1, N2, P1, U15, U71};
@@ -656,18 +881,26 @@ mod tests {
         #[cfg(feature = "deser")] // won't compile without (De)Serialize traits derived
         serde_test::assert_tokens(&(10.m() / 5.s()), &[serde_test::Token::I32(2)])
     }
-}
 
-impl<S, U> core::iter::Sum for Quantity<S, U>
-where
-    S: Add<Output = S>,
-    S: Default,
-{
-    #[inline]
-    fn sum<I>(iter: I) -> Self
-    where
-        I: Iterator<Item = Self>,
-    {
-        iter.fold(Self::default(), Self::add)
+    #[test]
+    fn iter_traits() {
+        #[cfg(nightly)]
+        let iter = 1.s()..=10.s();
+        #[cfg(not(nightly))]
+        let iter = (1..=10).map(<_>::s);
+
+        // Sum of first n elements of arithmetic progression is equal to `n(a1 + an)/2`
+        // `10 * (1 + 10) / 2 == 55`
+        assert_eq!(iter.sum::<Quantity<_, _>>(), 55.s());
+    }
+
+    #[test]
+    fn rem() {
+        assert_eq!(10.s() % 3, 1.s());
+        assert_eq!(10.mps() % 4.m(), 2.quantity::<Hertz>());
+
+        let mut var = 20.s();
+        var %= 8;
+        assert_eq!(var, 4.s());
     }
 }

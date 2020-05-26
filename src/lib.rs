@@ -12,6 +12,12 @@
 //! ## cargo features
 //!
 //! - `deser` - enables support of (de)serializing [`Quantity`] via [`serde`]
+//! - `nightly` - enables features those require nightly compiler. Currently
+//!   those are:
+//!   - ~~[`impl core::iter::Step for Quantity`](crate::Quantity#impl-Step)~~
+//!     (TODO: this implementation was removed because of a breaking change in
+//!     std, later on, we will need to implement this again)
+//!   - that's all :)
 //!
 //! [`Quantity`]: crate::Quantity
 //! [`serde`]: https://docs.rs/serde
@@ -61,7 +67,7 @@
 // For running tests from readme
 #![cfg_attr(all(doctest, feature = "nightly"), feature(external_doc))]
 //explain TODO
-#![cfg_attr(feature = "nightly", feature(doc_cfg))]
+#![cfg_attr(feature = "nightly", feature(doc_cfg, step_trait))]
 // I hate missing docs
 #![deny(missing_docs)]
 // And I like inline

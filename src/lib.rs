@@ -40,6 +40,7 @@
 //! ## See also
 //!
 //! - [`uom`](https://docs.rs/uom)
+//! - [`dimensioned`](https://docs.rs/dimensioned)
 //!
 //! ## Type errors
 //!

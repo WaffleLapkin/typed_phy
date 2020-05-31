@@ -800,8 +800,7 @@ impl<S, U> From<S> for Quantity<S, U> {
 
 impl<S, U> Sum for Quantity<S, U>
 where
-    S: Add<Output = S>,
-    S: Default,
+    Self: Add<Output = Self> + Default,
 {
     #[inline]
     fn sum<I>(iter: I) -> Self

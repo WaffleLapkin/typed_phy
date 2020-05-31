@@ -5,7 +5,7 @@ use core::{
 
 use crate::{
     fraction::{FractionTrait, One},
-    rt::{RtDimensions, RtFraction, RtUnit, UnitRtExt},
+    rt::{RtDimensions, RtUnit, UnitRtExt},
     units::*,
     DimensionsTrait,
 };
@@ -61,7 +61,50 @@ impl<D: DimensionsTrait, R: FractionTrait> UnitTrait for Unit<D, R> {
 ///
 /// [base units]: https://en.wikipedia.org/wiki/SI_base_unit
 /// [`Dimensions`]: crate::Dimensions
-/// [`Fraction`]: crate::Fraction
+/// [`Fraction`]: crate::fraction::Fraction
+///
+/// ## Formatting
+///
+/// `Unit` implements both [`Debug`] and [`Display`] with different output.
+/// [`Debug`] will simply print the exponents and the ratio, while [`Display`]
+/// will try to preserve a human dearable name:
+///
+/// ```
+/// use typed_phy::{
+///     prefixes::{Kilo, Milli},
+///     units::{Hertz, Metre, Second, Watt},
+///     Dimensions, Unit,
+/// };
+/// use typenum::{N1, P1, P12, Z0};
+///
+/// /// Just random for example purposes
+/// type Rnd = Milli<Kilo<Unit<Dimensions<P12, P1, Z0, N1, Z0, Z0, Z0>>>>;
+///
+/// assert_eq!(format!("{}", Watt::new()), "W");
+/// assert_eq!(format!("{}", Hertz::new()), "Hz");
+/// assert_eq!(format!("{}", Kilo::<Metre>::new()), "km");
+/// assert_eq!(format!("{}", Milli::<Second>::new()), "ms");
+/// assert_eq!(format!("{}", Rnd::new()), "m^12 * kg * A^-1 (ratio: 1)");
+///
+/// assert_eq!(
+///     format!("{:?}", Watt::new()),
+///     "Unit<Dimensions<2, 1, -3, 0, 0, 0, 0>, Fraction<1/1>>"
+/// );
+/// assert_eq!(
+///     format!("{:?}", Hertz::new()),
+///     "Unit<Dimensions<0, 0, -1, 0, 0, 0, 0>, Fraction<1/1>>"
+/// );
+/// assert_eq!(
+///     format!("{:?}", Kilo::<Metre>::new()),
+///     "Unit<Dimensions<1, 0, 0, 0, 0, 0, 0>, Fraction<1000/1>>"
+/// );
+/// assert_eq!(
+///     format!("{:?}", Milli::<Second>::new()),
+///     "Unit<Dimensions<0, 0, 1, 0, 0, 0, 0>, Fraction<1/1000>>"
+/// );
+/// ```
+///
+/// [`Display`]: core::fmt::Display
 pub struct Unit<D, R = One>(phantasm::Invariant<(D, R)>);
 
 impl<D, R> Unit<D, R> {
@@ -97,7 +140,7 @@ where
 impl<D, R> fmt::Display for Unit<D, R>
 where
     D: DimensionsTrait,
-    R: FractionTrait,
+    R: FractionTrait + Default + fmt::Display,
 {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -115,7 +158,7 @@ where
                             amount_of_substance,
                             luminous_intensity,
                         },
-                    ratio: RtFraction { numerator, divisor },
+                    ratio: _,
                 } = Self::RT;
                 let mut first = true;
 
@@ -151,12 +194,10 @@ where
                 push!(first, amount_of_substance, "mol");
                 push!(first, luminous_intensity, "cd");
 
-                if numerator != 1 || divisor != 1 {
-                    if first {
-                        f.write_fmt(format_args!("(ratio: {}/{})", numerator, divisor))?;
-                    } else {
-                        f.write_fmt(format_args!(" (ratio: {}/{})", numerator, divisor))?;
-                    }
+                if first {
+                    f.write_fmt(format_args!("(ratio: {:#})", R::default()))?;
+                } else {
+                    f.write_fmt(format_args!(" (ratio: {:#})", R::default()))?;
                 }
 
                 Ok(())
@@ -353,15 +394,15 @@ mod tests {
     fn display_other() {
         assert_display_eq!(
             Unit::<Dimensions<P1, N2, P1, N1, N1, P1, P1>>,
-            "m * kg^-2 * s * A^-1 * K^-1 * mol * cd",
+            "m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 1)",
         );
         assert_display_eq!(
             Milli::<Unit::<Dimensions<Z0, Z0, Z0, Z0, Z0, Z0, Z0>>>,
-            "(ratio: 1/1000)",
+            "(ratio: 1 / 1000)",
         );
         assert_display_eq!(
             Milli::<Unit::<Dimensions<P1, N2, P1, N1, N1, P1, P1>>>,
-            "m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 1/1000)",
+            "m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 1 / 1000)",
         );
     }
 }

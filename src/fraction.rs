@@ -8,7 +8,7 @@ use typenum::{Prod, UInt, Unsigned, U0, U1};
 use crate::{eq::FractionEq, from_int::FromUnsigned};
 
 /// **Type-level** fraction `Numerator / Denominator`. It's primarily used for
-/// ratio. See also: [`Frac!`](crate::Frac) macro.
+/// ratio. See also: [`Frac!`](Frac) macro.
 ///
 /// ## Examples
 ///
@@ -19,6 +19,8 @@ use crate::{eq::FractionEq, from_int::FromUnsigned};
 /// assert_type_eq!(Prod<Frac![U2 / U5], Frac![U7 / U3]>, Frac![U14 / U15]);
 /// assert_type_eq!(<Frac![U30 / U42] as Simplify>::Output, Frac![U5 / U7]);
 /// ```
+///
+/// ## Formattign
 ///
 /// ```
 /// use typed_phy::Frac;

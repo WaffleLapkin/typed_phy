@@ -21,15 +21,10 @@ use crate::{
     Unit,
 };
 
+#[rustfmt::skip] // this is needed to prevent md table breakage. (see https://github.com/rust-lang/rustfmt/issues/4210)
 /// Base type of the whole lib
 ///
 /// Represent quantity of unit `U` that is stored in storage (integer) `S`.
-///
-/// Note that you can
-/// - add/sub quantities of the same unit
-/// - mul/div quantities by other quantities (even of different units)
-/// - mul/div quantities by integers
-/// (but in any case you need same storage type)
 ///
 /// ## Examples
 ///
@@ -53,6 +48,67 @@ use crate::{
 ///
 /// let mult = x * y;
 /// assert_eq!(mult, 200.quantity::<SquareMetre>());
+/// ```
+///
+/// ## Operations
+///
+/// There are a plenty of arithmetic operations those can be done with `Quantity`! All (most?) of
+/// them are present in the following table (given `a`, `b` quantities of the same unit, `b'`
+/// quantity of (maybe) a different unit and `s` storage integer type):
+///
+/// | Trait                                           | rhs Unit | Output                          | Call way            | Description                                                                                  |
+/// |-------------------------------------------------|----------|---------------------------------|---------------------|----------------------------------------------------------------------------------------------|
+/// | [`Add`](core::ops::Add)                         | Same     | `Self`                          | `a + b`             | sum of 2 quantities, works only with the same units                                          |
+/// | [`Sub`](core::ops::Sub)                         | Same     | `Self`                          | `a - b`             | diff of 2 quantities, works only with the same units                                         |
+/// | [`Mul`](core::ops::Mul)                         | Any      | `Quantity<S, U * URhs>`         | `a * b'`            | production of 2 quantities, changes unit                                                     |
+/// | [`Div`](core::ops::Div)                         | Any      | `Quantity<S, U / URhs>`         | `a / b'`            | quotation of 2 quantities, changes unit                                                      |
+/// | [`Mul`](core::ops::Mul)`<S>`                    | n/a      | `Self`                          | `a * s`             | production of quantity and an integer                                                        |
+/// | [`Div`](core::ops::Div)`<S>`                    | n/a      | `Self`                          | `a / s`             | quotation of quantity and an integer                                                         |
+/// | [`Neg`](core::ops::Neg)                         | n/a      | `Self`                          | `-a`                | negation of quantity                                                                         |
+/// | [`CheckedAdd`](crate::checked::CheckedAdd)      | Same     | `Option<Self>`                  | `a.checked_add(b)`  | sum of 2 quantities, works only with the same units, checks for overflow and underflow       |
+/// | [`CheckedSub`](crate::checked::CheckedSub)      | Same     | `Option<Self>`                  | `a.checked_sub(b)`  | diff of 2 quantities, works only with the same units, checks for overflow and underflow      |
+/// | [`CheckedMul`](crate::checked::CheckedMul)      | Any      | `Option<Quantity<S, U * URhs>>` | `a.checked_mul(b')` | production of 2 quantities, changes unit, checks for overflow and underflow                  |
+/// | [`CheckedDiv`](crate::checked::CheckedDiv)      | Any      | `Option<Quantity<S, U / URhs>>` | `a.checked_div(b')` | quotation of 2 quantities, changes unit, checks for overflow, underflow and division by zero |
+/// | [`CheckedMul`](crate::checked::CheckedMul)`<S>` | n/a      | `Option<Self>`                  | `a.checked_mul(s)`  | production of quantity and an integer, checks for overflow and underflow                     |
+/// | [`CheckedDiv`](crate::checked::CheckedDiv)`<S>` | n/a      | `Option<Self>`                  | `a.checked_div(s)`  | quotation of quantity and an integer, checks for overflow, underflow and division by zero    |
+/// | [`AddAssign`](core::ops::AddAssign)             | Same     | `()`                            | `a += b`            | adds one quantity to another mutating the destination (`a`)                                  |
+/// | [`SubAssign`](core::ops::SubAssign)             | Same     | `()`                            | `a -= b`            | subtracts one quantity from another mutating the destination (`a`)                           |
+/// | [`MulAssign`](core::ops::MulAssign)`<S>`        | n/a      | `()`                            | `a *= s`            | multiplies quantity by an integer mutating the destination (`a`)                             |
+/// | [`DivAssign`](core::ops::DivAssign)`<S>`        | n/a      | `()`                            | `a /= s`            | divides quantity by an integer mutating the destination (`a`)                                |
+/// | [`Rem`](core::ops::Rem)                         | Any      | `Quantity<S, U / URhs>`         | `a % b'`            | remainder of the division of 2 quantities                                                    |
+/// | [`Rem`](core::ops::Rem)`<S>`                    | n/a      | `Self`                          | `a % s`             | remainder of the division quantity by an integer                                             |
+/// | [`RemAssign`](core::ops::RemAssign)`<S>`        | n/a      | `()`                            | `a %= s`            | sets `a` to the remainder of division `a` by an integer                                    |
+// to edit such a big table, it's recommended to use smt like https://www.tablesgenerator.com/markdown_tables
+///
+/// ## Formatting
+///
+/// `Quantity` implements pretty much every trait from [`core::fmt`](core::fmt) (ofc except
+/// `Pointer` and `Write`). The `Quantity` consists of the storage `S` and unit `U`,
+/// both of them are icluded in the output. The storage `S` will be always formatted with the same
+/// trait as `Quantity`. **However** the unit `U` will be formatted with `Debug`, if `Quantity` is
+/// formatted with `Debug`, and with `Display` otherwise.
+///
+/// See [`Unit`s](crate::Unit#formatting) docs for info about formatting units.
+///
+/// ```rust
+/// use typed_phy::IntExt;
+///
+/// let quantity = 10.m();
+///
+/// assert_eq!(
+///     format!("{:?}", quantity),
+///     "Quantity<_, Unit<Dimensions<1, 0, 0, 0, 0, 0, 0>, Fraction<1/1>>>(10)"
+/// ); // Debug
+/// assert_eq!(format!("{}", quantity), "10 m"); // Display
+///
+/// assert_eq!(format!("{:b}", quantity), "1010 m"); // Binary
+/// assert_eq!(format!("{:x}", quantity), "a m"); // LowerHex
+/// assert_eq!(format!("{:X}", quantity), "A m"); // UpperHex
+/// assert_eq!(format!("{:o}", quantity), "12 m"); // Octal
+///
+/// let quantity = 1020.0.m();
+/// assert_eq!(format!("{:e}", quantity), "1.02e3 m"); // LowerExp
+/// assert_eq!(format!("{:E}", quantity), "1.02E3 m"); // UpperExp
 /// ```
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
@@ -291,6 +347,8 @@ where
     /// assert_eq!(10.min_().into_base(), 600.s());
     /// assert_eq!((100.m() * 3.km()).into_base(), 300_000.sqm());
     /// ```
+    ///
+    /// [`into_unit`]: Self::into_unit
     #[inline]
     pub fn into_base(self) -> Quantity<S, Unit<U::Dimensions, One>> {
         self.into_unit()
@@ -877,7 +935,7 @@ mod tests {
         assert_display_eq!(Pico::<Second>, "42 ps");
         assert_display_eq!(
             Unit::<Dimensions<P1, N2, P1, N1, N1, P1, P1>, Frac![U15 / U71]>,
-            "42 m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 15/71)",
+            "42 m * kg^-2 * s * A^-1 * K^-1 * mol * cd (ratio: 15 / 71)",
         );
     }
 
